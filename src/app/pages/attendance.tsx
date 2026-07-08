@@ -114,9 +114,9 @@
 
 //  const handleDownloadReport = async ()=>{
 //      try {
-      
+
 //      } catch (error) {
-      
+
 //      }
 //      finally{
 
@@ -274,7 +274,8 @@
 
 
 
-import React, { useState, useRef, forwardRef } from "react";
+import axios from "axios";
+import React, { useState, useRef, forwardRef, useEffect } from "react";
 import { useReactToPrint } from "react-to-print";
 
 // ==========================================
@@ -327,7 +328,7 @@ const AttendanceRegisterPrint = forwardRef(({ reportData, meta }, ref) => {
             <tr key={emp.empId} className="hover:bg-gray-50 border-b border-gray-300">
               <td className="border border-gray-400 p-1 text-center font-medium">{idx + 1}</td>
               <td className="border border-gray-400 p-1 text-left font-bold uppercase truncate">{emp.employeeName}</td>
-              
+
               {emp.attendanceGrid.map((grid) => {
                 let displayStatus = "-";
                 let bgClass = "";
@@ -336,8 +337,8 @@ const AttendanceRegisterPrint = forwardRef(({ reportData, meta }, ref) => {
                 else if (grid.status === "ABSENT") { displayStatus = "A"; bgClass = "bg-red-100 text-red-700 font-bold"; }
                 else if (grid.status === "LATE") { displayStatus = "L"; }
                 else if (grid.status === "HALF DAY") { displayStatus = "HD"; }
-                else if (grid.status === "WO" || grid.status === "CL") { 
-                  displayStatus = grid.status; 
+                else if (grid.status === "WO" || grid.status === "CL") {
+                  displayStatus = grid.status;
                   bgClass = "bg-yellow-100 font-bold text-amber-800"; // Exact physical register highlighter effect
                 } else {
                   displayStatus = grid.status;
@@ -396,12 +397,15 @@ export default function AttendanceManagement() {
   const [employees, setEmployees] = useState(initialEmployees);
   const [jsonData, setJsonData] = useState("");
   const [selectedCompany, setSelectedCompany] = useState("NONE");
+  const [selectedDate, setSelectedDate] = useState("");
   const [reportDate, setReportDate] = useState("2026-03"); // Target Month Filter
+  const [leavePolicies,setLeavePolicies] = useState([]);
 
   // Print & PDF hooks integration states
   const [apiReportData, setApiReportData] = useState([]);
   const [apiMeta, setApiMeta] = useState(null);
   const componentRef = useRef(null);
+  const [companies, setCompanies] = useState([]);
 
   // react-to-print configuration hook
   const handlePrintTrigger = useReactToPrint({
@@ -409,6 +413,85 @@ export default function AttendanceManagement() {
     documentTitle: `Attendance_Register_${selectedCompany}_${reportDate}`,
     pageStyle: "@page { size: A3 landscape; margin: 10mm; }",
   });
+
+
+
+
+
+  useEffect(() => {
+    getCompinies()
+  }, [])
+
+  useEffect(() => {
+     if(selectedCompany && selectedDate) {
+      getAttendanceRecordByDate();
+     } 
+  }, [selectedDate,selectedCompany])
+
+  useEffect(()=>{
+      selectedCompany && getLeavePolicy();
+  },[selectedCompany])
+
+
+  const getLeavePolicy = async()=>{
+      const selectedComp = companies.find((cmp:any)=>cmp.id === selectedCompany);
+      console.log(selectedComp)
+      setLeavePolicies(selectedComp?.leavePolicies || [])
+  }
+
+  const getCompinies = async () => {
+
+    try {
+      const res = await axios.get("http://localhost:4000/codeflame/payroll/api/company")
+     
+      setCompanies(res.data.data.map((comp: any) => {
+        return {
+          id: comp._id,
+          companyName: comp.name,
+          earnings: comp.earning,
+          deductions: comp.deduction,
+          leavePolicies:comp.leavePolicies
+        }
+      }))
+
+    } catch (error: any) {
+      alert(error.message)
+      console.log(error)
+    }
+  }
+
+  const getAttendanceRecordByDate = async () => {
+    try {
+      const backendUrl = `http://localhost:4000/codeflame/payroll/api/attendance/company/${selectedCompany}?date=${selectedDate}`
+      const response = await fetch(backendUrl);
+      const res = await response.json()
+      console.log("attendance record of selected date:", res)
+      const updatedEmployee = res.data.map((emp:any) => {
+  
+       return {
+        companyId: emp.compId._id,
+        companyName: emp.compId.name,
+        id: emp.empId.empId || emp.empId,
+        empErpId:emp.empId._id,
+        name: emp.name,
+        checkIn: emp.checkInTime?emp.checkInTime.split("T")[1].slice(0,5):"",
+        checkOut: emp.checkOutTime?emp.checkOutTime.split("T")[1].slice(0,5):"",
+        status: emp.status,
+        workingHours:emp.workingHours,
+       } 
+      })
+      console.log(updatedEmployee)
+      setEmployees(updatedEmployee)
+
+    } catch (error: any) {
+      alert(error.message)
+      console.log(error)
+    }
+  }
+
+
+
+
 
   const calculateHours = (checkIn, checkOut) => {
     if (!checkIn || !checkOut) return "0";
@@ -420,6 +503,7 @@ export default function AttendanceManagement() {
 
   const updateEmployee = (id, field, value) => {
     const updated = employees.map((emp) => {
+      console.log(emp.id, id)
       if (emp.id !== id) return emp;
       const updatedEmp = { ...emp, [field]: value };
       updatedEmp.workingHours = calculateHours(updatedEmp.checkIn, updatedEmp.checkOut);
@@ -450,12 +534,17 @@ export default function AttendanceManagement() {
   };
 
   const saveAttendance = async () => {
+    console.log(employees)
+    const udpatedEmployee = employees.map((emp)=>{
+        emp.status = emp.status.length === 0 ? "Present" : emp.status;
+        emp.checkIn = emp.checkIn.length === 0 ? "00:00" : emp.checkIn
+        emp.checkOut = emp.checkOut.length === 0 ? "00:00" : emp.checkOut
+        return emp;
+    })
+    console.log(udpatedEmployee)
     try {
-      const payload = {
-        date: new Date().toISOString(),
-        attendance: employees,
-      };
-      console.log(payload);
+      const res = await axios.post(`http://localhost:4000/codeflame/payroll/api/attendance?date=${selectedDate}`,{attendanceInfo:udpatedEmployee})
+      console.log(res.data)
       alert("Attendance Saved Successfully");
     } catch (error) {
       alert("Failed To Save Attendance");
@@ -516,9 +605,25 @@ export default function AttendanceManagement() {
             onChange={(e) => setSelectedCompany(e.target.value)}
           >
             <option value="NONE">Select Company</option>
-            <option value="65b2d1a3e4b0a12345678900">HCL</option>
-            <option value="COMP002">Infosys</option>
+
+            {companies.map(
+              (company: any) => (
+                <option
+                  key={
+                    company.id
+                  }
+                  value={
+                    company.id
+                  }
+                >
+                  {
+                    company.companyName
+                  }
+                </option>
+              )
+            )}
           </select>
+
 
           <input
             type="month"
@@ -526,11 +631,18 @@ export default function AttendanceManagement() {
             value={reportDate}
             onChange={(e) => setReportDate(e.target.value)}
           />
+          <input
+            type="date"
+            className="border rounded-lg px-3 py-2 text-sm bg-white font-medium text-slate-700 shadow-sm"
+            value={selectedDate}
+            onChange={(e) => setSelectedDate(e.target.value)}
+          />
+
 
           <button onClick={saveAttendance} className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-4 py-2 rounded-lg shadow-sm transition">
             Save Attendance
           </button>
-          
+
           <button onClick={handleDownloadReport} className="bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold px-4 py-2 rounded-lg shadow-sm transition">
             Download Monthly Record
           </button>
@@ -603,15 +715,15 @@ export default function AttendanceManagement() {
                     <td className="px-6 py-4">
                       <select
                         className="border rounded-md px-2 py-1 bg-white font-medium text-slate-700 focus:ring-1 focus:ring-blue-500"
-                        value={employee.status}
+                        value={employee.status.length > 0?employee.status:"Present"}
                         onChange={(e) => updateEmployee(employee.id, "status", e.target.value)}
                       >
-                        <option>Present</option>
-                        <option>Absent</option>
-                        <option>Half Day</option>
-                        <option>WFH</option>
-                        <option>CL</option>
-                        <option>WO</option>
+                      
+                        <option value="Present">Present</option>
+                        {leavePolicies.map((lv:any)=>{
+                         return <option key={lv.id} value={lv.name}>{lv.name}</option>
+                          })}
+                       
                       </select>
                     </td>
                     <td className="px-6 py-4 font-bold text-blue-600">{employee.workingHours} hrs</td>

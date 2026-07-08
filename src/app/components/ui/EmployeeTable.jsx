@@ -1,4 +1,5 @@
 import {
+  LoaderCircle,
   Pencil,
   Trash2,
   Users,
@@ -6,6 +7,7 @@ import {
 
 export default function EmployeeTable({
   employees,
+  loading,
   companies,
   onEdit,
   onDelete,
@@ -13,6 +15,7 @@ export default function EmployeeTable({
   const getCompanyName = (
     companyId
   ) => {
+    
     const company =
       companies.find(
         (c) =>
@@ -30,32 +33,18 @@ export default function EmployeeTable({
     employee
   ) => {
     const earnings =
-      employee.earnings || [];
+      employee.earning || [];
 
-    return earnings.reduce(
-      (total, item) =>
-        total +
-        Number(
-          item.amount || 0
-        ),
-      0
-    );
+    return Object.values(earnings).reduce((sum, value) => sum + (Number(value) || 0),0 );
   };
 
   const getTotalDeduction = (
     employee
   ) => {
     const deductions =
-      employee.deductions || [];
+      employee.deduction || [];
 
-    return deductions.reduce(
-      (total, item) =>
-        total +
-        Number(
-          item.amount || 0
-        ),
-      0
-    );
+    return Object.values(deductions).reduce((sum, value) => sum + (Number(value) || 0),0 )
   };
 
   const getNetSalary = (
@@ -140,8 +129,22 @@ export default function EmployeeTable({
             </tr>
           </thead>
 
+             {loading && ( 
+           
+                    <tr>
+                     <td colSpan={8}  className="p-4 ">
+                         <div className="flex flex-col">
+                         <LoaderCircle size={30} className="animate-spin mx-auto" />
+                         <span className="ml-2 text-center">Loading...</span>
+                         </div>
+                     </td>
+                   </tr>
+                    )} 
           {/* Body */}
           <tbody>
+
+
+
             {employees.map(
               (employee) => (
                 <tr
@@ -152,7 +155,7 @@ export default function EmployeeTable({
                 >
                   <td className="p-4 font-medium">
                     {
-                      employee.employeeId
+                      employee.empId
                     }
                   </td>
 
@@ -167,19 +170,19 @@ export default function EmployeeTable({
 
                   <td className="p-4">
                     {getCompanyName(
-                      employee.companyId
+                      employee.company_id
                     )}
                   </td>
 
                   <td className="p-4">
                     {
-                      employee.department
+                      employee.department_name
                     }
                   </td>
 
                   <td className="p-4">
                     {
-                      employee.designation
+                      employee.designation || "N/A"
                     }
                   </td>
 

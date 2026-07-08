@@ -15,7 +15,6 @@ export default function LeavePolicy({
       {
         id: data.length+1,
         name: "",
-        days: "",
         paid: true,
       },
     ]);
@@ -80,19 +79,7 @@ const update = (
             }
           />
 
-          <input
-            className="input"
-            placeholder="Days"
-            value={item.days}
-            onChange={(e) =>
-              update(
-                item.id,
-                "days",
-                e.target.value
-              )
-            }
-          
-          />
+        
 
           <select 
            className="input"

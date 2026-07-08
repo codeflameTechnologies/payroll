@@ -24,7 +24,9 @@ const getInitialFormState = (employee) => {
     company_id: "",
     company_name: "",
     department_name: "",
+    designation:"",
     DOJ: "",
+    workingHour:0,
     earning: {},    // Dynamic key-value pairs matching backend schema
     deduction: {},  // Dynamic key-value pairs matching backend schema
   };
@@ -93,9 +95,9 @@ export default function EmployeeModal({ companies = [], employee, onClose, onSav
   const validateForm = () => {
     const newErrors = {};
     const requiredFields = [
-      "empId", "firstName", "fatherName", "mobile", "aadhaarNo", 
+      "empId", "firstName", "fatherName", "aadhaarNo", 
       "PFNo", "ESINo", "PanNo", "BankAccountNo", "BankName", 
-      "BankIFSC", "company_id", "department_name", "DOJ"
+      "BankIFSC", "company_id","designation", "department_name", "DOJ","workingHour"
     ];
 
     requiredFields.forEach((field) => {
@@ -219,12 +221,20 @@ export default function EmployeeModal({ companies = [], employee, onClose, onSav
                 {errors.company_id && <span className="text-xs text-red-500">{errors.company_id}</span>}
               </div>
               <div>
+                <input className="input" placeholder="Designation *" name="designation" value={form.designation} onChange={handleChange} />
+                {errors.designation && <span className="text-xs text-red-500">{errors.designation}</span>}
+              </div>
+              <div>
                 <input className="input" placeholder="Department Name *" name="department_name" value={form.department_name} onChange={handleChange} />
                 {errors.department_name && <span className="text-xs text-red-500">{errors.department_name}</span>}
               </div>
               <div>
                 <input type="date" className="input" placeholder="Date of Joining *" name="DOJ" value={form.DOJ ? form.DOJ.substring(0, 10) : ""} onChange={handleChange} />
                 {errors.DOJ && <span className="text-xs text-red-500">{errors.DOJ}</span>}
+              </div>
+              <div>
+                <input type="number" className="input" placeholder="Working Hour *" name="workingHour" value={form.workingHour || ""} onChange={handleChange} />
+                {errors.workingHour && <span className="text-xs text-red-500">{errors.workingHour}</span>}
               </div>
             </div>
           </div>

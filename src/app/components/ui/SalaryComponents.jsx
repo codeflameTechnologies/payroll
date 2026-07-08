@@ -14,8 +14,6 @@ export default function SalaryComponents({
       {
         id: data.length+1,
         name: "",
-        calculationType: "fixed",
-        value: "",
       },
     ]);
   };
@@ -79,39 +77,9 @@ export default function SalaryComponents({
             }
           />
 
-          <select
-            className="input"
-            value={
-              item.calculationType
-            }
-            onChange={(e) =>
-              update(
-                item.id,
-                "calculationType",
-                e.target.value
-              )
-            }
-          >
-            <option value="fixed">
-              Fixed
-            </option>
-            <option value="percentage">
-              Percentage
-            </option>
-          </select>
+         
 
-          <input
-            className="input"
-            value={item.value}
-            placeholder="Value"
-            onChange={(e) =>
-              update(
-                item.id,
-                "value",
-                e.target.value
-              )
-            }
-          />
+         
 
           <button
             onClick={() =>

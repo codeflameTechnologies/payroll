@@ -1,4 +1,5 @@
-import React, { useRef } from 'react';
+import axios from 'axios';
+import React, { useEffect, useRef, useState } from 'react';
 import { useReactToPrint } from 'react-to-print';
 
 // --- SAMPLE EMPLOYEE DATA MATRIX ---
@@ -65,23 +66,41 @@ const SAMPLE_EMPLOYEES = [
   }
 ];
 
+
+
+
+
+
+
+
+
+
+
+
 // --- SINGLE PAYSLIP TEMPLATE ---
 const PayslipItem = ({ emp }) => {
+  console.log("employee data:", emp)
   const monthYear = "MARCH, 2026";
   const totalDays = 31.0;
   const payDays = emp.attendance.present + emp.attendance.voff + emp.attendance.holiday + emp.attendance.leave;
+  const oneDayBasicSalary = emp.rates.basic/emp.attendance.totalDaysInMonth;
+  const oneHourBasicPayment = oneDayBasicSalary / emp.workingHour;
+  const oneDayBasicHRA = emp.rates.hra/emp.attendance.totalDaysInMonth
+  const oneHourHRAPayment = oneDayBasicHRA/emp.workingHour
 
-  // Calculation engine based on actual work days
-  const basicEarned = Math.round((emp.rates.basic / totalDays) * payDays);
-  const hraEarned = Math.round((emp.rates.hra / totalDays) * payDays);
-  const miscFineAdjustment = emp.empCode === "00036" ? 121 : 0; // matching Harish Chandra's specific misc logic
-  const totalEarnings = basicEarned + hraEarned + miscFineAdjustment;
 
-  // Statutory Calculations matching Indian Compliances & image data patterns
-  const pfDeduction = basicEarned >= 9000 && payDays >= 30 ? 1080 : Math.round(basicEarned * 0.12);
-  const esiDeduction = totalEarnings > 0 ? Math.round(totalEarnings * 0.0075) : 0;
-  const totalDeductions = pfDeduction + esiDeduction + emp.advance + emp.loan;
+  const totalEarnings = Object.values(emp.rates).reduce((sum, value) => sum + (Number(value) || 0), 0);
+
+  
+  const totalDeductions = Object.values(emp.deductions).reduce((sum, value) => sum + (Number(value) || 0), 0);
   const netSalary = totalEarnings - totalDeductions;
+
+
+
+
+
+
+
 
   return (
     <div style={{
@@ -144,7 +163,7 @@ const PayslipItem = ({ emp }) => {
 
       {/* Structured Ledger Area */}
       <div style={{ display: 'flex', marginTop: '10px', border: '1px solid #000' }}>
-        
+
         {/* Column 1: Attendance matrix */}
         <div style={{ width: '24%', borderRight: '1px solid #000' }}>
           <div style={{ backgroundColor: '#f0f0f0', textAlign: 'center', fontWeight: 'bold', borderBottom: '1px solid #000', padding: '3px' }}>ATTENDANCE / दिन</div>
@@ -172,12 +191,12 @@ const PayslipItem = ({ emp }) => {
               </tr>
             </thead>
             <tbody>
-              <tr><td style={{ padding: '3px' }}>BASIC / मूल वेतन</td><td style={{ textAlign: 'right' }}>{emp.rates.basic}</td><td style={{ textAlign: 'right' }}>0</td><td style={{ textAlign: 'right', fontWeight: 'bold' }}>{basicEarned}</td></tr>
-              <tr><td style={{ padding: '3px' }}>HRA / मकान भत्ता</td><td style={{ textAlign: 'right' }}>{emp.rates.hra}</td><td style={{ textAlign: 'right' }}>0</td><td style={{ textAlign: 'right', fontWeight: 'bold' }}>{hraEarned}</td></tr>
+              <tr><td style={{ padding: '3px' }}>BASIC / मूल वेतन</td><td style={{ textAlign: 'right' }}>{emp.rates.basic}</td><td style={{ textAlign: 'right' }}>0</td><td style={{ textAlign: 'right', fontWeight: 'bold' }}>{oneDayBasicSalary*payDays}</td></tr>
+              <tr><td style={{ padding: '3px' }}>HRA / मकान भत्ता</td><td style={{ textAlign: 'right' }}>{emp.rates.hra}</td><td style={{ textAlign: 'right' }}>0</td><td style={{ textAlign: 'right', fontWeight: 'bold' }}>{(oneDayBasicHRA*payDays).toFixed(2)}</td></tr>
               <tr><td style={{ padding: '3px' }}>CONV / यातायात भत्ता</td><td style={{ textAlign: 'right' }}>0</td><td style={{ textAlign: 'right' }}>0</td><td style={{ textAlign: 'right', fontWeight: 'bold' }}>0</td></tr>
               <tr><td style={{ padding: '3px' }}>MEDICAL</td><td style={{ textAlign: 'right' }}>0</td><td style={{ textAlign: 'right' }}>0</td><td style={{ textAlign: 'right', fontWeight: 'bold' }}>0</td></tr>
               <tr><td style={{ padding: '3px' }}>EL_Encash</td><td style={{ textAlign: 'right' }}>0</td><td style={{ textAlign: 'right' }}>0</td><td style={{ textAlign: 'right', fontWeight: 'bold' }}>0</td></tr>
-              <tr><td style={{ padding: '3px' }}>Misc</td><td style={{ textAlign: 'right' }}>0</td><td style={{ textAlign: 'right' }}>0</td><td style={{ textAlign: 'right', fontWeight: 'bold' }}>{miscFineAdjustment}</td></tr>
+              <tr><td style={{ padding: '3px' }}>Misc</td><td style={{ textAlign: 'right' }}>0</td><td style={{ textAlign: 'right' }}>0</td><td style={{ textAlign: 'right', fontWeight: 'bold' }}>{emp.rates.misc}</td></tr>
               <tr><td style={{ padding: '3px' }}>Statutory Bonus</td><td style={{ textAlign: 'right' }}>0</td><td style={{ textAlign: 'right' }}>0</td><td style={{ textAlign: 'right', fontWeight: 'bold' }}>0</td></tr>
               <tr><td style={{ padding: '3px' }}>Attendance Incentive</td><td style={{ textAlign: 'right' }}>0</td><td style={{ textAlign: 'right' }}>0</td><td style={{ textAlign: 'right', fontWeight: 'bold' }}>0</td></tr>
               <tr><td style={{ padding: '3px' }}>OT AMT / अतिरिक्त कार्य</td><td style={{ textAlign: 'right' }}>0</td><td style={{ textAlign: 'right' }}>0</td><td style={{ textAlign: 'right', fontWeight: 'bold' }}>0</td></tr>
@@ -201,9 +220,9 @@ const PayslipItem = ({ emp }) => {
               </tr>
             </thead>
             <tbody>
-              <tr><td style={{ padding: '3px' }}>E.P.F. / भविष्य निधि</td><td style={{ textAlign: 'right', padding: '3px' }}>{pfDeduction}.00</td></tr>
+              <tr><td style={{ padding: '3px' }}>E.P.F. / भविष्य निधि</td><td style={{ textAlign: 'right', padding: '3px' }}>{emp.deductions.pf}.00</td></tr>
               <tr><td style={{ padding: '3px' }}>VPF / स्वैच्छिक भविष्य निधि</td><td style={{ textAlign: 'right', padding: '3px' }}>0.00</td></tr>
-              <tr><td style={{ padding: '3px' }}>E.S.I. / कर्मचारी राज्य बीमा</td><td style={{ textAlign: 'right', padding: '3px' }}>{esiDeduction}.00</td></tr>
+              <tr><td style={{ padding: '3px' }}>E.S.I. / कर्मचारी राज्य बीमा</td><td style={{ textAlign: 'right', padding: '3px' }}>{emp.deductions.esi}.00</td></tr>
               <tr><td style={{ padding: '3px' }}>LWF / कल्याणकारी फण्ड</td><td style={{ textAlign: 'right', padding: '3px' }}>0.00</td></tr>
               <tr><td style={{ padding: '3px' }}>ADVANCE / अग्रिम</td><td style={{ textAlign: 'right', padding: '3px', fontWeight: emp.advance > 0 ? 'bold' : 'normal' }}>{emp.advance}.00</td></tr>
               <tr><td style={{ padding: '3px' }}>LOAN / लोन</td><td style={{ textAlign: 'right', padding: '3px' }}>{emp.loan}.00</td></tr>
@@ -241,11 +260,145 @@ const PayslipItem = ({ emp }) => {
 // --- MAIN WRAPPER CONTAINER ---
 export default function PayslipGenerator() {
   const componentRef = useRef();
+  const [employeeRecord, setEmployeeRecord] = useState([])
+  const [selectedCompany, setSelectedCompany] = useState("")
 
   const handlePrint = useReactToPrint({
     contentRef: componentRef,
     documentTitle: 'All_Employee_Payslips_March_2026',
   });
+
+  useEffect(() => {
+    selectedCompany && getAttendanceRecord();
+  }, [selectedCompany])
+
+
+
+  const getAttendanceRecord = async () => {
+    try {
+      const res = await axios.get(`http://localhost:4000/codeflame/payroll/api/attendance/register-report?compId=${selectedCompany}&year=${2026}&month=${parseInt(6)}`);
+      
+      const groupedEmployees = Object.values(
+        res.data.data.reduce((acc, record) => {
+          const emp = record.empId;
+          const id = emp._id;
+
+
+       
+
+        
+
+
+
+
+
+
+
+          if (!acc[id]) {
+            acc[id] = {
+              empCode: emp.empId,
+              name: `${emp.firstName} ${emp.lastName || ""}`.trim(),
+              designation: emp.designation,
+              dept: emp.department_name,
+              fatherName: emp.fatherName,
+              doj: emp.DOJ,
+              bankName: emp.BankName,
+              accountNo: emp.BankAccountNo,
+              ifscCode: emp.BankIFSC,
+              panNo: emp.PanNo,
+              aadhaarNo: emp.aadhaarNo,
+              pfNo: emp.PFNo,
+              esiNo: emp.ESINo,
+              workingHour: emp.workingHour,
+
+              attendance: {
+                present: 0,
+                voff: 0,
+                holiday: 0,
+                leave: 0,
+                absent: 0,
+                halfDay: 0,
+                totalDaysInMonth: res?.data?.meta?.totalDaysInMonth || 0,
+                workingRecord:[]
+              },
+
+              rates: {
+                basic: Number(emp.earning["Basic Salary"] || 0),
+                hra: Number(emp.earning["HRA"] || 0),
+                conv: Number(emp.earning["CONV"] || 0),
+                medical: Number(emp.earning["MEDICAL"] || 0),
+                misc: Number(emp.earning["Misc"] || 0),
+                bonus: Number(emp.earning["Statutory Bonus"] || 0),
+                incentive: Number(emp.earning["Attendance Incentive"] || 0),
+                ot: Number(emp.earning["OT AMT"] || 0),
+              },
+
+              deductions: {
+                pf: Number(emp.deduction["E.P.F"] || 0),
+                vpf: Number(emp.deduction["VPF"] || 0),
+                esi: Number(emp.deduction["E.S.I"] || 0),
+                advance: Number(emp.deduction["ADVANCE"] || 0),
+                loan: Number(emp.deduction["LOAN"] || 0),
+                fine: Number(emp.deduction["FINE"] || 0),
+                others: Number(emp.deduction["OTHERS"] || 0),
+                tds: Number(emp.deduction["T.D.S"] || 0),
+              },
+            };
+          }
+          acc[id].attendance.workingRecord.push({
+            workingHours:record.workingHours
+          })
+          switch (record.status) {
+            case "Present":
+              acc[id].attendance.present += 1;
+              break;
+
+            case "Half Day":
+              acc[id].attendance.halfDay += 1;
+              acc[id].attendance.present += 0.5;
+              acc[id].attendance.absent += 0.5;
+              break;
+
+            case "Weekly Off":
+              acc[id].attendance.voff += 1;
+              break;
+
+            case "Holiday":
+              acc[id].attendance.holiday += 1;
+              break;
+
+            case "Casual Leave":
+              acc[id].attendance.leave += 1;
+              break;
+
+            case "Absent":
+              acc[id].attendance.absent += 1;
+              break;
+
+            default:
+              break;
+          }
+
+          return acc;
+        }, {})
+      );
+      console.log("groupedEmployees:,", groupedEmployees)
+      setEmployeeRecord(groupedEmployees)
+
+
+
+    } catch (error) {
+      alert(error.message)
+      console.log(error.message)
+    }
+  }
+
+
+
+
+
+
+
 
   return (
     <div style={{ padding: '20px', fontFamily: 'sans-serif', backgroundColor: '#f4f6f8', minHeight: '100vh' }}>
@@ -254,7 +407,18 @@ export default function PayslipGenerator() {
           <h1 style={{ margin: '0', fontSize: '20px', color: '#333' }}>Payroll Registry Portal</h1>
           <p style={{ margin: '4px 0 0 0', fontSize: '13px', color: '#666' }}>Batch Processing for March 2026</p>
         </div>
-        <button 
+        <div className="flex flex-wrap gap-3 items-center">
+          <select
+            className="border rounded-lg px-3 py-2 text-sm bg-white font-medium text-slate-700 shadow-sm"
+            value={selectedCompany}
+            onChange={(e) => setSelectedCompany(e.target.value)}
+          >
+            <option value="NONE">Select Company</option>
+            <option value="65b2d1a3e4b0a12345678900">HCL</option>
+            <option value="COMP002">Infosys</option>
+          </select>
+        </div>
+        <button
           onClick={handlePrint}
           style={{
             backgroundColor: '#0056b3',
@@ -275,7 +439,7 @@ export default function PayslipGenerator() {
       {/* Print Target Viewport Container */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '25px', alignItems: 'center' }}>
         <div ref={componentRef} style={{ backgroundColor: '#fff', boxShadow: '0 4px 12px rgba(0,0,0,0.05)' }}>
-          {SAMPLE_EMPLOYEES.map((employee) => (
+          {employeeRecord.map((employee) => (
             <PayslipItem key={employee.empCode} emp={employee} />
           ))}
         </div>

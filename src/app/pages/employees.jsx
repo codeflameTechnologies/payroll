@@ -25,7 +25,28 @@ export default function EmployeeManagement() {
 
   useEffect(() => {
     getCompany()
+   
   }, [])
+
+
+  useEffect(()=>{
+     companyFilter &&  getEmployees()
+  },[companyFilter])
+
+
+  const getEmployees = async ()=>{
+    setLoading(true)
+    try {
+      const res = await axios.get(`http://localhost:4000/codeflame/payroll/api/employee/${companyFilter}`)
+      console.log(res.data)
+      setEmployees(res.data.data)
+    } catch (error) {
+      console.log(error.message)
+      alert(error.message)
+    }finally{
+      setLoading(false)
+    }
+  }
 
 
   const getCompany = async () => {
@@ -50,19 +71,22 @@ export default function EmployeeManagement() {
   // Add / Update Employee
   const saveEmployee = async (employee) => {
     setProcessing(true)
+    console.log("befor saving:",employee)
     try {
       if (editingEmployee) {
-        const res = await axios.put("http://localhost:4000/codeflame/payroll/api/employee", employee)
-        console.log(res.data)
+        const res = await axios.put(`http://localhost:4000/codeflame/payroll/api/employee/${employee._id}`, employee)
+        getEmployees()
+        alert(res.data.message)
        
       } else {
         console.log("....")
         const res = await axios.post("http://localhost:4000/codeflame/payroll/api/employee", employee)
-        console.log(res.data)
+        getEmployees();
+       
        
       }
-     // setEditingEmployee(null);
-      // setOpen(false);
+      setEditingEmployee(null);
+      setOpen(false);
     } catch (error) {
       console.log(error.message)
       alert(error.message)
@@ -99,13 +123,14 @@ export default function EmployeeManagement() {
   // Filter Employee List
   const filteredEmployees =
     useMemo(() => {
+      console.log(employees)
       return employees.filter(
         (emp) => {
           const matchesCompany =
             companyFilter === ""
               ? true
               : String(
-                emp.companyId
+                emp.company_id
               ) === companyFilter;
 
           const matchesSearch =
@@ -114,7 +139,7 @@ export default function EmployeeManagement() {
               .includes(
                 search.toLowerCase()
               ) ||
-            emp.employeeId
+            emp.empId
               .toLowerCase()
               .includes(
                 search.toLowerCase()
@@ -212,6 +237,7 @@ export default function EmployeeManagement() {
           employees={
             filteredEmployees
           }
+           loading = {loading}
           companies={companies}
           onEdit={
             editEmployee
@@ -228,6 +254,7 @@ export default function EmployeeManagement() {
             employee={
               editingEmployee
             }
+           
             processing = {processing}
             onClose={() => {
               setOpen(false);
