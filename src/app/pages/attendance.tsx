@@ -423,7 +423,7 @@ export default function AttendanceManagement() {
   }, [])
 
   useEffect(() => {
-     if(selectedCompany && selectedDate) {
+     if(selectedCompany !== "NONE" && selectedDate) {
       getAttendanceRecordByDate();
      } 
   }, [selectedDate,selectedCompany])
@@ -474,8 +474,8 @@ export default function AttendanceManagement() {
         id: emp.empId.empId || emp.empId,
         empErpId:emp.empId._id,
         name: emp.name,
-        checkIn: emp.checkInTime?emp.checkInTime.split("T")[1].slice(0,5):"",
-        checkOut: emp.checkOutTime?emp.checkOutTime.split("T")[1].slice(0,5):"",
+        checkIn: emp.checkInTime !== "00:00" && emp.checkInTime !== null ?emp.checkInTime:"",
+        checkOut: emp.checkOutTime !== "00:00" && emp.checkInTime !== null ?emp.checkOutTime:"",
         status: emp.status,
         workingHours:emp.workingHours,
        } 
