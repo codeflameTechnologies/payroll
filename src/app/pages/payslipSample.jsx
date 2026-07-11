@@ -79,7 +79,7 @@ const SAMPLE_EMPLOYEES = [
 
 // --- SINGLE PAYSLIP TEMPLATE ---
 const PayslipItem = ({ emp, selectedCompanyDetail }) => {
-  console.log(emp)
+ 
   const monthYear = "MARCH, 2026";
   const totalDays = 31.0;
   const paidLeave = selectedCompanyDetail.leavePolicies.filter((lv) => {
@@ -358,17 +358,6 @@ export default function PayslipGenerator() {
         res.data.data.reduce((acc, record) => {
           const emp = record.empId;
           const id = emp._id;
-
-
-
-
-
-
-
-
-
-
-
 
           if (!acc[id]) {
             acc[id] = {

@@ -81,21 +81,22 @@ const update = (
 
         
 
+        {/* Leave Type Select - FIXED WITH BOOLEAN CONVERSION */}
           <select 
-           className="input"
-           value={item.paid}
-           onChange={(e) =>
-             update(
-               item.id,
-               "paid",
-               e.target.value
-             )
-           }
+            className="input"
+            value={item.paid.toString()} // Ensure state string value matching for standard select tags
+            onChange={(e) =>
+              update(
+                item.id,
+                "paid",
+                e.target.value === "true" // HERE: Converting string "true"/"false" back into standard boolean
+              )
+            }
           >
-            <option value={true}>
+            <option value="true">
               Paid
             </option>
-            <option value={false}>
+            <option value="false">
               Unpaid
             </option>
           </select>
