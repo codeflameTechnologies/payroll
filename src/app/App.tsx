@@ -6,8 +6,8 @@ import { Toaster } from './components/ui/sonner';
 export default function App() {
   return (
     <ThemeProvider defaultTheme="light" storageKey="payroll-ui-theme">
-      <RouterProvider router={router} />
       <Toaster />
+      <RouterProvider router={router} />
     </ThemeProvider>
   );
 }

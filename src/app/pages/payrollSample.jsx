@@ -77,7 +77,7 @@ function Payroll({ emp, index, cmp }) {
 
   })
   const halfdays = emp.attendance["Half Day"] || 0;
-  const paydays = paydayArr.reduce((sum, d) => sum + Number(d.value), 0) - halfdays*0.5;
+  const paydays = paydayArr.reduce((sum, d) => sum + Number(d.value), 0) - halfdays * 0.5;
 
 
 
@@ -157,7 +157,7 @@ function Payroll({ emp, index, cmp }) {
 
 
   const totalEarnings = Object.values(emp.rates).reduce((sum, value) => sum + (Number(value) || 0), 0);
-  
+
   const totalDeductions = Object.values(emp.deductions).reduce((sum, value) => sum + (Number(value) || 0), 0);
 
   const netSalary = totalEarnings - totalDeductions;
@@ -342,7 +342,7 @@ export default function PayrollRegister() {
   const [selectedCompanyDetail, setSelectedCompanyDetail] = useState({})
 
   const [companies, setCompanies] = useState([]);
-  const [reportDate,setReportDate] = useState("");
+  const [reportDate, setReportDate] = useState("");
 
   const printAreaRef = useRef();
 
@@ -368,17 +368,31 @@ export default function PayrollRegister() {
 
   useEffect(() => {
 
-    selectedCompany && getAttendanceRecord();
+    (selectedCompany && reportDate) && getAttendanceRecord();
 
-  }, [selectedCompany])
+  }, [selectedCompany, reportDate])
 
-
+  const getToken = () => {
+    const token = localStorage.getItem("codeflame_payroll2003");
+    if (!token) {
+      toast.error("Session expired");
+      navitgate("/login");
+      throw new Error("No token");
+    }
+    return token;
+  };
 
   const getCompanies = async () => {
-
+   const token = getToken();
     try {
 
-      const res = await axios.get("http://localhost:4000/codeflame/payroll/api/company")
+      const res = await axios.get("http://localhost:4000/codeflame/payroll/api/company",
+        {
+          headers:{
+            Authorization:`Bearer ${token}`
+          }
+        }
+      )
 
       setCompanies(res.data.data.map((comp) => {
 
@@ -415,13 +429,18 @@ export default function PayrollRegister() {
   }
 
   const getAttendanceRecord = async () => {
-    console.log("Selected Date:",reportDate)
-    const [year,month] = reportDate.split("-");
-  
+    console.log("Selected Date:", reportDate)
+    const [year, month] = reportDate.split("-");
+    const token = getToken();
 
     try {
 
-      const res = await axios.get(`http://localhost:4000/codeflame/payroll/api/attendance/register-report?compId=${selectedCompany}&year=${Number(year)}&month=${Number(month)}`);
+      const res = await axios.get(`http://localhost:4000/codeflame/payroll/api/attendance/register-report?compId=${selectedCompany}&year=${Number(year)}&month=${Number(month)}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        });
 
       const groupedEmployees = Object.values(
 
@@ -487,11 +506,6 @@ export default function PayrollRegister() {
 
 
 
-  // Helper calculation functions
-
-  const calculateTotalEarnings = (e) => e.basic + e.hra + e.conv + e.medical + e.other + e.misc + e.bonus + e.incentive;
-
-  const calculateTotalDeductions = (d) => d.pf + d.esi + d.lwf + d.adv + d.tds + d.loan + d.others;
 
 
 
@@ -507,12 +521,12 @@ export default function PayrollRegister() {
 
           <h1 className="text-xl font-bold text-gray-800">Payroll Management</h1>
 
-         
+
         </div>
 
         <div className="flex flex-wrap gap-3 items-center">
 
-         <input
+          <input
             type="month"
             className="border rounded-lg px-3 py-2 text-sm bg-white font-medium text-slate-700 shadow-sm"
             value={reportDate}

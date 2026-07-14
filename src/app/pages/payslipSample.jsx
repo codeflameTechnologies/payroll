@@ -2,84 +2,13 @@ import axios from 'axios';
 import React, { useEffect, useRef, useState } from 'react';
 import { useReactToPrint } from 'react-to-print';
 
-// --- SAMPLE EMPLOYEE DATA MATRIX ---
-const SAMPLE_EMPLOYEES = [
-  {
-    empCode: "00024",
-    name: "RAJBENDRA SINGH YADAV",
-    designation: "SECURITY GUARD",
-    dept: "ADMIN",
-    trade: "GENERAL",
-    fatherName: "MAKHIKHAN",
-    doj: "01/03/2025",
-    bankName: "State Bank of India",
-    accountNo: "7011399497",
-    ifscCode: "SBIN0001234",
-    panNo: "ABCDE1234F",
-    aadhaarNo: "1234-5678-9012",
-    pfNo: "DL/CPM/12345/00024",
-    esiNo: "2012345678",
-    attendance: { present: 24, voff: 4, holiday: 2, leave: 1, absent: 0 },
-    rates: { basic: 9000, hra: 5186 },
-    advance: 10000,
-    loan: 0
-  },
-  {
-    empCode: "00036",
-    name: "HARISH CHANDRA",
-    designation: "SECURITY GUARD",
-    dept: "ADMIN",
-    trade: "HIGHLY SKILLED",
-    fatherName: "SH. RAM",
-    doj: "27/08/2025",
-    bankName: "Punjab National Bank",
-    accountNo: "123456789012",
-    ifscCode: "PUNB0123456",
-    panNo: "XYZW9876G",
-    aadhaarNo: "9876-5432-1098",
-    pfNo: "DL/CPM/12345/00036",
-    esiNo: "2098765432",
-    attendance: { present: 2, voff: 0, holiday: 2, leave: 0, absent: 27 },
-    rates: { basic: 9000, hra: 5186 },
-    advance: 0,
-    loan: 0
-  },
-  {
-    empCode: "00037",
-    name: "AJAY KUMAR",
-    designation: "SECURITY GUARD",
-    dept: "ADMIN",
-    trade: "HIGHLY SKILLED",
-    fatherName: "PARMOD KUMAR",
-    doj: "27/08/2025",
-    bankName: "HDFC Bank",
-    accountNo: "9536460624",
-    ifscCode: "HDFC0000123",
-    panNo: "QWER7654M",
-    aadhaarNo: "5555-6666-7777",
-    pfNo: "DL/CPM/12345/00037",
-    esiNo: "2055555555",
-    attendance: { present: 23, voff: 5, holiday: 2, leave: 1, absent: 0 },
-    rates: { basic: 9000, hra: 5186 },
-    advance: 6500,
-    loan: 0
-  }
-];
-
-
-
-
-
-
-
-
 
 
 
 
 // --- SINGLE PAYSLIP TEMPLATE ---
 const PayslipItem = ({ emp, selectedCompanyDetail }) => {
- 
+
   const monthYear = "MARCH, 2026";
   const totalDays = 31.0;
   const paidLeave = selectedCompanyDetail.leavePolicies.filter((lv) => {
@@ -111,22 +40,59 @@ const PayslipItem = ({ emp, selectedCompanyDetail }) => {
       payDays += emp.attendance[key];
     }
   }
-
+  const halfdays = emp.attendance["Half Day"] || 0;
+  payDays = payDays - halfdays * 0.5;
 
   const oneDayBasicSalary = emp.rates["Basic Salary"] / emp.attendance.totalDaysInMonth;
   const oneHourBasicPayment = oneDayBasicSalary / emp.workingHour;
   const oneDayBasicHRA = emp.rates.HRA / emp.attendance.totalDaysInMonth
-  const oneHourHRAPayment = oneDayBasicHRA / emp.workingHour
+  const oneHourHRAPayment = oneDayBasicHRA / emp.workingHour 
 
+ let totalHoliday = 0;
+
+  for (const key in emp.attendance) {
+
+    if (key.includes("holiday") ||
+
+      key.includes("Holiday") ||
+
+      key.includes("HOLIDAY") ||
+
+      key.includes("WEEK OFF") ||
+
+      key.includes("Week Off") ||
+
+      key.includes("week off")
+
+    ) {
+
+      totalHoliday += Number(emp.attendance[key])
+
+    }
+
+  }
+
+
+
+
+
+
+
+
+  const totalWorkingHour = emp.attendance.totalDaysInMonth * emp.workingHour - (totalHoliday * emp.workingHour);
+  const employeeWorkingHour = emp.attendance.workingRecord.reduce((sum, wh) => sum + Number(wh.workingHours), 0)
+
+  const overTime = (totalWorkingHour - employeeWorkingHour) < 0 ? (totalWorkingHour - employeeWorkingHour) * -1 : 0;
 
   const totalEarnings = Object.values(emp.rates).reduce((sum, value) => sum + (Number(value) || 0), 0);
 
 
   const totalDeductions = Object.values(emp.deductions).reduce((sum, value) => sum + (Number(value) || 0), 0);
-  const netSalary = totalEarnings - totalDeductions;
+  // const netSalary = totalEarnings - totalDeductions;
 
 
-
+  const basicSalary = emp.rates["Basic Salary"];
+  const hra = emp.rates.HRA
 
 
 
@@ -244,7 +210,7 @@ const PayslipItem = ({ emp, selectedCompanyDetail }) => {
                 <td style={{ padding: '3px' }}>TOTAL / कुल योग :</td>
                 <td style={{ textAlign: 'right' }}>14186.00</td>
                 <td style={{ textAlign: 'right' }}>0</td>
-                <td style={{ textAlign: 'right' }}>{totalEarnings}.00</td>
+                <td style={{ textAlign: 'right' }} className='pl-2'>{((totalEarnings + (oneDayBasicSalary * payDays) + (oneDayBasicHRA * payDays) + (overTime * oneHourBasicPayment)) - basicSalary - hra).toFixed(2)}</td>
               </tr>
             </tbody>
           </table>
@@ -270,7 +236,7 @@ const PayslipItem = ({ emp, selectedCompanyDetail }) => {
                   )
                 })
               }
-           
+
               <tr style={{ backgroundColor: '#f0f0f0', borderTop: '1px solid #000', fontWeight: 'bold' }}>
                 <td style={{ padding: '3px' }}>TOTAL / कुल योग :</td>
                 <td style={{ textAlign: 'right', padding: '3px' }}>{totalDeductions}.00</td>
@@ -292,7 +258,7 @@ const PayslipItem = ({ emp, selectedCompanyDetail }) => {
         </div>
         <div style={{ width: '30%', border: '1px solid #000', textAlign: 'center', padding: '5px', alignSelf: 'center', backgroundColor: '#f9f9f9' }}>
           <span style={{ fontSize: '10px', fontWeight: 'bold' }}>NET SALARY PAYABLE</span>
-          <h3 style={{ margin: '3px 0 0 0', fontSize: '16px', fontWeight: 'bold' }}>₹ {netSalary.toLocaleString('en-IN')}.00</h3>
+          <h3 style={{ margin: '3px 0 0 0', fontSize: '16px', fontWeight: 'bold' }}>₹ {(((totalEarnings + (oneDayBasicSalary * payDays) + (oneDayBasicHRA * payDays) + (overTime * oneHourBasicPayment)) - basicSalary - hra) - totalDeductions).toFixed(2)}.00</h3>
         </div>
       </div>
     </div>
@@ -305,6 +271,7 @@ export default function PayslipGenerator() {
   const [employeeRecord, setEmployeeRecord] = useState([])
   const [selectedCompany, setSelectedCompany] = useState("")
   const [selectedCompanyDetail, setSelectedCompanyDetail] = useState({})
+  const [reportDate,setReportDate] = useState("")
   const [companies, setCompanies] = useState([]);
 
 
@@ -318,8 +285,18 @@ export default function PayslipGenerator() {
   }, [])
 
   useEffect(() => {
-    selectedCompany && getAttendanceRecord();
-  }, [selectedCompany])
+    (selectedCompany && reportDate) && getAttendanceRecord();
+  }, [selectedCompany,reportDate])
+
+  const getToken = () => {
+    const token = localStorage.getItem("codeflame_payroll2003");
+    if (!token) {
+      toast.error("Session expired");
+      navitgate("/login");
+      throw new Error("No token");
+    }
+    return token;
+  };
 
   const onChangeSelectCompany = (id) => {
     const company = companies.find((cmp) => cmp.id === id)
@@ -328,9 +305,15 @@ export default function PayslipGenerator() {
 
   }
   const getCompanies = async () => {
-
+    const token = getToken();
     try {
-      const res = await axios.get("http://localhost:4000/codeflame/payroll/api/company")
+      const res = await axios.get("http://localhost:4000/codeflame/payroll/api/company",
+        {
+          headers:{
+            Authorization:`Bearer ${token}`
+          }
+        }
+      )
 
       setCompanies(res.data.data.map((comp) => {
         return {
@@ -351,9 +334,16 @@ export default function PayslipGenerator() {
 
 
   const getAttendanceRecord = async () => {
+      const [year,month] = reportDate.split("-");
+      const token = getToken();
     try {
-      const res = await axios.get(`http://localhost:4000/codeflame/payroll/api/attendance/register-report?compId=${selectedCompany}&year=${2026}&month=${parseInt(6)}`);
-      console.log(res.data.data)  
+      const res = await axios.get(`http://localhost:4000/codeflame/payroll/api/attendance/register-report?compId=${selectedCompany}&year=${year}&month=${parseInt(month)}`,
+    {
+      headers:{
+        Authorization:`Bearer ${token}`
+      }
+    });
+   
       const groupedEmployees = Object.values(
         res.data.data.reduce((acc, record) => {
           const emp = record.empId;
@@ -403,7 +393,7 @@ export default function PayslipGenerator() {
           return acc;
         }, {})
       );
-      console.log("groupedEmployees:,", groupedEmployees)
+      
       setEmployeeRecord(groupedEmployees)
 
 
@@ -429,6 +419,14 @@ export default function PayslipGenerator() {
           <p style={{ margin: '4px 0 0 0', fontSize: '13px', color: '#666' }}>Batch Processing for March 2026</p>
         </div>
         <div className="flex flex-wrap gap-3 items-center">
+
+          <input
+            type="month"
+            className="border rounded-lg px-3 py-2 text-sm bg-white font-medium text-slate-700 shadow-sm"
+            value={reportDate}
+            onChange={(e) => setReportDate(e.target.value)}
+          />
+
           <select
             className="border rounded-lg px-3 py-2 text-sm bg-white font-medium text-slate-700 shadow-sm"
             value={selectedCompany}
@@ -454,6 +452,7 @@ export default function PayslipGenerator() {
             )}
           </select>
 
+
         </div>
         <button
           onClick={handlePrint}
@@ -469,7 +468,7 @@ export default function PayslipGenerator() {
             boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
           }}
         >
-          Create & Print Slips ({SAMPLE_EMPLOYEES.length})
+          Create & Print Slips
         </button>
       </div>
 

@@ -13,7 +13,7 @@ export function AppLayout() {
         onToggle={() => setSidebarCollapsed(!sidebarCollapsed)}
       />
       <div className="flex-1 flex flex-col overflow-hidden">
-        <Header />
+       
         <main className="flex-1 overflow-y-auto">
           <Outlet />
         </main>
@@ -21,3 +21,22 @@ export function AppLayout() {
     </div>
   );
 }
+
+
+export function AuthLayout() {
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+
+  return (
+    <div className="flex h-screen overflow-hidden bg-background">
+     
+      <div className="flex-1 flex flex-col overflow-hidden">
+       
+        <main className="flex-1 overflow-y-auto">
+          <Outlet />
+        </main>
+      </div>
+    </div>
+  );
+}
+
+

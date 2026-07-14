@@ -19,28 +19,23 @@ import {
   Settings,
   ChevronLeft,
   ChevronRight,
+  ShieldX
 } from 'lucide-react';
 import { Button } from '../ui/button';
 import { ScrollArea } from '../ui/scroll-area';
 import { motion } from 'motion/react';
 
 const menuItems = [
-  { icon: LayoutDashboard, label: 'Dashboard', href: '/' },
-  { icon: Building2, label: 'Company', href: '/company' },
-  { icon: Users, label: 'Employees', href: '/employees' },
-  { icon: Clock, label: 'Attendance', href: '/attendance' },
-  { icon: CalendarDays, label: 'Leave Management', href: '/leave' },
-  { icon: DollarSign, label: 'Payroll', href: '/payroll' },
-  { icon: Wallet, label: 'Salary Structure', href: '/salary-structure' },
-  { icon: FileText, label: 'Payslips', href: '/payslips' },
-  { icon: HandCoins, label: 'Loans & Advances', href: '/loans' },
-  { icon: Receipt, label: 'Reimbursements', href: '/reimbursements' },
-  { icon: FileSpreadsheet, label: 'Tax Management', href: '/tax' },
-  { icon: Shield, label: 'Compliance', href: '/compliance' },
-  { icon: BarChart3, label: 'Reports', href: '/reports' },
-  { icon: FolderOpen, label: 'Documents', href: '/documents' },
-  { icon: Bell, label: 'Notifications', href: '/notifications' },
-  { icon: Settings, label: 'Settings', href: '/settings' },
+ 
+  { icon: Building2, label: 'Company', href: '/admin/company' },
+  { icon: Users, label: 'Employees', href: '/admin/employees' },
+  { icon: Clock, label: 'Attendance', href: '/admin/attendance' },
+ 
+  { icon: DollarSign, label: 'Payroll', href: '/admin/payroll' },
+  { icon: FileText, label: 'Payslips', href: '/admin/payslips' },
+  { icon: BarChart3, label: 'Reports', href: '/admin/reports' },
+  { icon: ShieldX, label: 'Access', href: '/admin/access' },
+  { icon: Settings, label: 'Settings', href: '/admin/settings' },
 ];
 
 interface SidebarProps {

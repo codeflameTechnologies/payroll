@@ -32,12 +32,27 @@ export default function EmployeeManagement() {
   useEffect(()=>{
      companyFilter &&  getEmployees()
   },[companyFilter])
+  
 
+  const getToken = () => {
+      const token = localStorage.getItem("codeflame_payroll2003");
+      if (!token) {
+        toast.error("Session expired");
+        navitgate("/login");
+        throw new Error("No token");
+      }
+      return token;
+    };
 
   const getEmployees = async ()=>{
     setLoading(true)
+    const token = getToken();
     try {
-      const res = await axios.get(`http://localhost:4000/codeflame/payroll/api/employee/${companyFilter}`)
+      const res = await axios.get(`http://localhost:4000/codeflame/payroll/api/employee/${companyFilter}`,{
+        headers:{
+          Authorization:`Bearer ${token}`
+        }
+      })
       console.log(res.data)
       setEmployees(res.data.data)
     } catch (error) {
@@ -50,10 +65,14 @@ export default function EmployeeManagement() {
 
 
   const getCompany = async () => {
-
+   const token = getToken();
     try {
-      const res = await axios.get("http://localhost:4000/codeflame/payroll/api/company")
-      console.log(res.data.data)
+      const res = await axios.get("http://localhost:4000/codeflame/payroll/api/company",{
+        headers:{
+          Authorization:`Bearer ${token}`
+        }
+      })
+     
       setCompanies(res.data.data.map((comp) => {
         return {
           id: comp._id,
@@ -71,16 +90,29 @@ export default function EmployeeManagement() {
   // Add / Update Employee
   const saveEmployee = async (employee) => {
     setProcessing(true)
-    console.log("befor saving:",employee)
+    const token = getToken();
     try {
       if (editingEmployee) {
-        const res = await axios.put(`http://localhost:4000/codeflame/payroll/api/employee/${employee._id}`, employee)
+        const res = await axios.put(`http://localhost:4000/codeflame/payroll/api/employee/${employee._id}`,
+           employee,
+          {
+            headers:{
+              Authorization:`Bearer ${token}`
+            }
+          })
         getEmployees()
         alert(res.data.message)
        
       } else {
         console.log("....")
-        const res = await axios.post("http://localhost:4000/codeflame/payroll/api/employee", employee)
+        const res = await axios.post("http://localhost:4000/codeflame/payroll/api/employee",
+           employee,
+            {
+            headers:{
+              Authorization:`Bearer ${token}`
+            }
+          }
+          )
         getEmployees();
        
        
