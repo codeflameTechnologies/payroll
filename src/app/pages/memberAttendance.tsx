@@ -77,7 +77,7 @@ export default function AttendanceManagement() {
       }))
 
     } catch (error: any) {
-      if(error.response?.status === 401 || error.response?.status === 403){
+       if(error.response?.status === 401 || error.response?.status === 403){
         navitgate("/login")
       }
       alert(error.message)
@@ -188,7 +188,7 @@ export default function AttendanceManagement() {
       )
       console.log(res.data)
       alert("Attendance Saved Successfully");
-    } catch (error:any) {
+    } catch (error) {
        if(error.response?.status === 401 || error.response?.status === 403){
         navitgate("/login")
       }

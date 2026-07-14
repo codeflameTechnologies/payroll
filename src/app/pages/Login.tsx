@@ -1,12 +1,12 @@
 "use client";
 
 import axios from "axios";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { FaUserShield } from "react-icons/fa";
 import { toast } from "sonner";
 
 import { FiEye, FiEyeOff } from "react-icons/fi";
-import { useNavigate } from "react-router";
+import { Link, useNavigate } from "react-router";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -15,6 +15,49 @@ export default function Login() {
   const [forgotProssessing, setForgotProssessing] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
+
+
+ useEffect(() => {
+    getCompinies()
+  }, [])
+
+ const getToken = () => {
+    const token = localStorage.getItem("codeflame_payroll2003");
+    if (!token) {
+      toast.error("Session expired");
+      navigate("/login");
+      throw new Error("No token");
+    }
+    return token;
+  };
+
+    const getCompinies = async () => {
+    const token = getToken();
+
+    try {
+      const res = await axios.get("http://localhost:4000/codeflame/payroll/api/company", {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      })
+
+      if(res.status === 200){
+        navigate("/admin")
+      }
+      
+
+    } catch (error: any) {
+      if(error.response?.status === 401 || error.response?.status === 403){
+        navigate("/login")
+      }
+      alert(error.message)
+      console.log(error)
+    }
+  }
+
+
+
+
 
   // ✅ Validation regex
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -187,6 +230,7 @@ export default function Login() {
             {processing ? "Logging in..." : "Login"}
           </button>
         </form>
+        <p>If you are not Admin: <Link to="/member/login"> <span className="text-blue-700">Login</span></Link></p>
 
         {/* Footer */}
         <p className="text-center text-xs text-gray-500 dark:text-gray-400 mt-6">

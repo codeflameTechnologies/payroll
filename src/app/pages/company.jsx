@@ -3,6 +3,7 @@ import CompanyModal from "../components/ui/CompanyModal";
 import CompanyTable from "../components/ui/CompanyTable";
 import { Loader, LoaderCircle } from "lucide-react";
 import axios from "axios"
+import { useNavigate } from "react-router";
 
 export default function Companies() {
   const [open, setOpen] = useState(false);
@@ -11,7 +12,8 @@ export default function Companies() {
     useState(null);
 
   const [processing, setProcessing] = useState(false);
-  const [loading,setLoading] = useState(false)
+  const [loading, setLoading] = useState(false)
+  const navigate = useNavigate()
 
 
   useEffect(() => {
@@ -20,71 +22,77 @@ export default function Companies() {
 
 
   const getToken = () => {
-      const token = localStorage.getItem("codeflame_payroll2003");
-      if (!token) {
-        toast.error("Session expired");
-        navitgate("/login");
-        throw new Error("No token");
-      }
-      return token;
-    };
+    const token = localStorage.getItem("codeflame_payroll2003");
+    if (!token) {
+      toast.error("Session expired");
+      navitgate("/login");
+      throw new Error("No token");
+    }
+    return token;
+  };
 
   const getCompinies = async () => {
     setLoading(true)
     const token = getToken();
     try {
-      const res = await axios.get("http://localhost:4000/codeflame/payroll/api/company",{
-        headers:{
-          Authorization:`Bearer ${token}`
+      const res = await axios.get("http://localhost:4000/codeflame/payroll/api/company", {
+        headers: {
+          Authorization: `Bearer ${token}`
         }
       })
       setCompanies(res.data.data)
       console.log(res)
     } catch (error) {
+      if (error.response?.status === 401 || error.response?.status === 403) {
+        navitgate("/login")
+      }
       alert(error.message)
       console.log(error)
-    }finally{
+    } finally {
       setLoading(false)
     }
   }
 
   const saveCompany = async (company) => {
 
-   setProcessing(true)
-   const token = getToken();
+    setProcessing(true)
+    const token = getToken();
 
- 
+
     try {
-      
+
       if (editingCompany) {
         const res = await axios.put(
           `http://localhost:4000/codeflame/payroll/api/company/${editingCompany._id}`,
           company,
           {
-            headers:{
-              Authorization:`Bearer ${token}`
+            headers: {
+              Authorization: `Bearer ${token}`
             }
           }
         );
         console.log("Company updated:", res.data);
         getCompinies()
       } else {
-  
+
         const res = await axios.post(
           "http://localhost:4000/codeflame/payroll/api/company",
           company,
           {
-            headers:{
-              Authorization:`Bearer ${token}`
+            headers: {
+              Authorization: `Bearer ${token}`
             }
           }
         );
         getCompinies()
       }
-  
+
       setOpen(false);
       setEditingCompany(null);
     } catch (error) {
+      if (error.response?.status === 401 || error.response?.status === 403) {
+        navitgate("/login")
+      }
       alert(error.message)
       console.log(error)
     } finally {

@@ -1,6 +1,7 @@
 import axios from 'axios';
 
 import React, { useEffect, useRef, useState } from 'react';
+import { useNavigate } from 'react-router';
 
 import { useReactToPrint } from 'react-to-print';
 
@@ -345,6 +346,7 @@ export default function PayrollRegister() {
   const [reportDate, setReportDate] = useState("");
 
   const printAreaRef = useRef();
+  const navigate = useNavigate();
 
 
 
@@ -410,6 +412,9 @@ export default function PayrollRegister() {
 
     } catch (error) {
 
+       if(error.response?.status === 401 || error.response?.status === 403){
+        navitgate("/login")
+      }
       alert(error.message)
 
       console.log(error)
@@ -495,7 +500,9 @@ export default function PayrollRegister() {
 
 
     } catch (error) {
-
+       if(error.response?.status === 401 || error.response?.status === 403){
+        navitgate("/login")
+      }
       alert(error.message)
 
       console.log(error)

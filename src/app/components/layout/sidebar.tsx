@@ -35,7 +35,7 @@ const menuItems = [
   { icon: FileText, label: 'Payslips', href: '/admin/payslips' },
   { icon: BarChart3, label: 'Reports', href: '/admin/reports' },
   { icon: ShieldX, label: 'Access', href: '/admin/access' },
-  { icon: Settings, label: 'Settings', href: '/admin/settings' },
+  // { icon: Settings, label: 'Settings', href: '/admin/settings' },
 ];
 
 interface SidebarProps {
@@ -62,12 +62,10 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
             transition={{ delay: 0.1 }}
             className="flex items-center gap-2"
           >
-            <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-lg flex items-center justify-center">
-              <DollarSign className="w-5 h-5 text-white" />
-            </div>
+           
             <div>
-              <h1 className="font-semibold text-sm">PayrollPro</h1>
-              <p className="text-xs text-muted-foreground">HR Management</p>
+              <h1 className="font-semibold text-sm">Codeflame Technology</h1>
+              <p className="text-xs text-muted-foreground">Payroll Software</p>
             </div>
           </motion.div>
         )}

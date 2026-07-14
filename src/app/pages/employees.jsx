@@ -3,6 +3,7 @@ import { Plus } from "lucide-react";
 import EmployeeModal from "../components/ui/EmployeeModal";
 import EmployeeTable from "../components/ui/EmployeeTable";
 import axios from "axios";
+import { useNavigate } from "react-router";
 
 export default function EmployeeManagement() {
   // Demo company data
@@ -22,6 +23,7 @@ export default function EmployeeManagement() {
     useState("");
   const [loading, setLoading] = useState(false)
   const [processing, setProcessing] = useState(false)
+  const navigate = useNavigate()
 
   useEffect(() => {
     getCompany()
@@ -56,6 +58,9 @@ export default function EmployeeManagement() {
       console.log(res.data)
       setEmployees(res.data.data)
     } catch (error) {
+       if(error.response?.status === 401 || error.response?.status === 403){
+        navitgate("/login")
+      }
       console.log(error.message)
       alert(error.message)
     }finally{
@@ -83,6 +88,9 @@ export default function EmployeeManagement() {
       }))
 
     } catch (error) {
+       if(error.response?.status === 401 || error.response?.status === 403){
+        navitgate("/login")
+      }
       console.log(error.message)
     }
   }
@@ -120,6 +128,9 @@ export default function EmployeeManagement() {
       setEditingEmployee(null);
       setOpen(false);
     } catch (error) {
+       if(error.response?.status === 401 || error.response?.status === 403){
+        navitgate("/login")
+      }
       console.log(error.message)
       alert(error.message)
     } finally {

@@ -16,6 +16,9 @@ import Signup from './pages/SignUp';
 import VerifyEmailPage from './pages/EmailVerify';
 import Login from "./pages/Login"
 import Access from './pages/Access';
+import MemberLogin from "./pages/memberLogin"
+import MemberEmailVerify from "./pages/memberEmailVerify"
+import MemberPortal from "./pages/memberAttendance"
 
 export const router = createBrowserRouter([
   {
@@ -28,7 +31,12 @@ export const router = createBrowserRouter([
         children: [
           {
             index: true,
-            Component: Dashboard,
+           Component: () => (
+              <PlaceholderPage
+                title="Dashboard"
+                description="Welcome back! Here's what's happening with your organization today."
+              />
+            ),
           },
           {
             path: "company",
@@ -115,10 +123,7 @@ export const router = createBrowserRouter([
             path: 'notifications',
             Component: Notifications,
           },
-          {
-            path: 'settings',
-            Component: Settings,
-          },
+          
         ]
       },
       {
@@ -126,12 +131,24 @@ export const router = createBrowserRouter([
         Component:Signup
       },
       {
-        path:'/login',
+        path:'/',
         Component:Login
       },
       {
         path:'/email/verify/:email',
         Component:VerifyEmailPage
+      },
+      {
+        path:'/member/login',
+        Component:MemberLogin
+      },
+      {
+        path:'/member/verify/:email',
+        Component:MemberEmailVerify
+      },
+      {
+        path:'/member/portal',
+        Component:MemberPortal
       }
 
     ]

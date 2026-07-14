@@ -1,6 +1,8 @@
 import axios from 'axios';
 import React, { useEffect, useRef, useState } from 'react';
+import { useNavigate } from 'react-router';
 import { useReactToPrint } from 'react-to-print';
+import { toast } from 'sonner';
 
 const monthObj = {
   1: "January", 2: "February", 3: "March", 4: "April",
@@ -90,6 +92,7 @@ export default function AttendanceReport() {
   const [selectedCompanyDetail, setSelectedCompanyDetail] = useState({});
   const [companies, setCompanies] = useState([]);
   const [reportDate, setReportDate] = useState("");
+  const navigate = useNavigate();
 
   const printAreaRef = useRef();
 
@@ -135,6 +138,9 @@ export default function AttendanceReport() {
         leavePolicies: comp.leavePolicies
       })));
     } catch (error) {
+       if(error.response?.status === 401 || error.response?.status === 403){
+        navitgate("/login")
+      }
       alert(error.message);
     }
   };
@@ -194,6 +200,9 @@ export default function AttendanceReport() {
 
       setEmployeeRecord(groupedEmployees);
     } catch (error) {
+       if(error.response?.status === 401 || error.response?.status === 403){
+        navitgate("/login")
+      }
       alert(error.message);
     }
   };

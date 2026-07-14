@@ -25,7 +25,7 @@ export default function PlaceholderPage({ title, description }: PlaceholderPageP
           <p className="text-muted-foreground text-center mb-6">
             This module is currently being built and will be available soon.
           </p>
-          <Button>Notify Me When Ready</Button>
+         
         </CardContent>
       </Card>
     </div>
