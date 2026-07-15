@@ -43,7 +43,7 @@ export default function AttendanceManagement() {
     const token = localStorage.getItem("codeflame_payroll2003");
     if (!token) {
       toast.error("Session expired");
-      navitgate("/login");
+      navitgate("/");
       throw new Error("No token");
     }
     return token;
@@ -60,7 +60,7 @@ export default function AttendanceManagement() {
     const token = getToken();
 
     try {
-      const res = await axios.get("http://localhost:4000/codeflame/payroll/api/company", {
+      const res = await axios.get("https://payroll-backend-pearl.vercel.app/codeflame/payroll/api/company", {
         headers: {
           Authorization: `Bearer ${token}`
         }
@@ -78,7 +78,7 @@ export default function AttendanceManagement() {
 
     } catch (error: any) {
       if(error.response?.status === 401 || error.response?.status === 403){
-        navitgate("/login")
+        navitgate("/")
       }
       alert(error.message)
       console.log(error)
@@ -88,7 +88,7 @@ export default function AttendanceManagement() {
   const getAttendanceRecordByDate = async () => {
     const token = getToken();
     try {
-      const backendUrl = `http://localhost:4000/codeflame/payroll/api/attendance/company/${selectedCompany}?date=${selectedDate}`
+      const backendUrl = `https://payroll-backend-pearl.vercel.app/codeflame/payroll/api/attendance/company/${selectedCompany}?date=${selectedDate}`
       const response = await fetch(backendUrl, {
         method: "GET",
         headers: {
@@ -116,7 +116,7 @@ export default function AttendanceManagement() {
 
     } catch (error: any) {
        if(error.response?.status === 401 || error.response?.status === 403){
-        navitgate("/login")
+        navitgate("/")
       }
       alert(error.message)
       console.log(error)
@@ -177,7 +177,7 @@ export default function AttendanceManagement() {
     })
     const token = getToken();
     try {
-      const res = await axios.post(`http://localhost:4000/codeflame/payroll/api/attendance?date=${selectedDate}`,
+      const res = await axios.post(`https://payroll-backend-pearl.vercel.app/codeflame/payroll/api/attendance?date=${selectedDate}`,
         { attendanceInfo: udpatedEmployee },
         {
           headers: {
@@ -190,7 +190,7 @@ export default function AttendanceManagement() {
       alert("Attendance Saved Successfully");
     } catch (error:any) {
        if(error.response?.status === 401 || error.response?.status === 403){
-        navitgate("/login")
+        navitgate("/")
       }
       alert("Failed To Save Attendance");
     }

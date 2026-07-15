@@ -21,6 +21,8 @@ import {
   ChevronRight,
   ShieldX
 } from 'lucide-react';
+import { FaLongArrowAltRight } from "react-icons/fa";
+
 import { Button } from '../ui/button';
 import { ScrollArea } from '../ui/scroll-area';
 import { motion } from 'motion/react';
@@ -45,6 +47,13 @@ interface SidebarProps {
 
 export function Sidebar({ collapsed, onToggle }: SidebarProps) {
   const location = useLocation();
+
+
+
+   const handleLogout = ()=>{
+    localStorage.removeItem("codeflame_payroll2003");
+    window.location.reload();
+ }
 
   return (
     <motion.aside
@@ -117,6 +126,11 @@ export function Sidebar({ collapsed, onToggle }: SidebarProps) {
           })}
         </nav>
       </ScrollArea>
+      <button onClick={handleLogout} className='flex justify-center hover:border items-center gap-2 cursor-pointer p-3'>
+        <span>Logout</span>
+        <FaLongArrowAltRight/>
+        
+      </button>
 
       {/* Toggle Button */}
       <div className="p-4 border-t">

@@ -52,7 +52,7 @@ export default function Signup() {
 
     try {
       const response = await axios.post(
-        "http://localhost:4000/codeflame/payroll/api/auth/signup",
+        "https://payroll-backend-pearl.vercel.app/codeflame/payroll/api/auth/signup",
         {
           organization_name:organiationName,
           name:adminName,

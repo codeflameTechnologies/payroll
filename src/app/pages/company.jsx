@@ -25,7 +25,7 @@ export default function Companies() {
     const token = localStorage.getItem("codeflame_payroll2003");
     if (!token) {
       toast.error("Session expired");
-      navitgate("/login");
+      navigate("/login");
       throw new Error("No token");
     }
     return token;
@@ -35,7 +35,7 @@ export default function Companies() {
     setLoading(true)
     const token = getToken();
     try {
-      const res = await axios.get("http://localhost:4000/codeflame/payroll/api/company", {
+      const res = await axios.get("https://payroll-backend-pearl.vercel.app/codeflame/payroll/api/company", {
         headers: {
           Authorization: `Bearer ${token}`
         }
@@ -44,7 +44,7 @@ export default function Companies() {
       console.log(res)
     } catch (error) {
       if (error.response?.status === 401 || error.response?.status === 403) {
-        navitgate("/login")
+        navitgate("/")
       }
       alert(error.message)
       console.log(error)
@@ -63,7 +63,7 @@ export default function Companies() {
 
       if (editingCompany) {
         const res = await axios.put(
-          `http://localhost:4000/codeflame/payroll/api/company/${editingCompany._id}`,
+          `https://payroll-backend-pearl.vercel.app/codeflame/payroll/api/company/${editingCompany._id}`,
           company,
           {
             headers: {
@@ -76,7 +76,7 @@ export default function Companies() {
       } else {
 
         const res = await axios.post(
-          "http://localhost:4000/codeflame/payroll/api/company",
+          "https://payroll-backend-pearl.vercel.app/codeflame/payroll/api/company",
           company,
           {
             headers: {
@@ -91,7 +91,7 @@ export default function Companies() {
       setEditingCompany(null);
     } catch (error) {
       if (error.response?.status === 401 || error.response?.status === 403) {
-        navitgate("/login")
+        navigate("/")
       }
       alert(error.message)
       console.log(error)
@@ -101,10 +101,41 @@ export default function Companies() {
 
   };
 
-  const deleteCompany = (id) => {
-    setCompanies((prev) =>
-      prev.filter((c) => c.id !== id)
-    );
+  const deleteCompany = async(id) => {
+    const confirm = window.confirm("Are you sure delete this company. This action delete all data related to this company")
+    if(!confirm){
+      return;
+    }
+    setProcessing(true)
+    const token = getToken();
+
+
+    try {
+
+    
+        const res = await axios.delete(
+          `https://payroll-backend-pearl.vercel.app/codeflame/payroll/api/company/${id}`,
+         
+          {
+            headers: {
+              Authorization: `Bearer ${token}`
+            }
+          }
+        )
+        
+        getCompinies()
+     
+
+     
+    } catch (error) {
+      if (error.response?.status === 401 || error.response?.status === 403) {
+        navigate("/")
+      }
+      alert(error.message)
+      console.log(error)
+    } finally {
+      setProcessing(false);
+    }
   };
 
   const editCompany = (company) => {

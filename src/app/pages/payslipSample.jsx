@@ -293,7 +293,7 @@ export default function PayslipGenerator() {
     const token = localStorage.getItem("codeflame_payroll2003");
     if (!token) {
       toast.error("Session expired");
-      navitgate("/login");
+      navigate("/login");
       throw new Error("No token");
     }
     return token;
@@ -308,7 +308,7 @@ export default function PayslipGenerator() {
   const getCompanies = async () => {
     const token = getToken();
     try {
-      const res = await axios.get("http://localhost:4000/codeflame/payroll/api/company",
+      const res = await axios.get("https://payroll-backend-pearl.vercel.app/codeflame/payroll/api/company",
         {
           headers:{
             Authorization:`Bearer ${token}`
@@ -328,7 +328,7 @@ export default function PayslipGenerator() {
 
     } catch (error) {
        if(error.response?.status === 401 || error.response?.status === 403){
-        navitgate("/login")
+        navigate("/login")
       }
       alert(error.message)
       console.log(error)
@@ -341,7 +341,7 @@ export default function PayslipGenerator() {
       const [year,month] = reportDate.split("-");
       const token = getToken();
     try {
-      const res = await axios.get(`http://localhost:4000/codeflame/payroll/api/attendance/register-report?compId=${selectedCompany}&year=${year}&month=${parseInt(month)}`,
+      const res = await axios.get(`https://payroll-backend-pearl.vercel.app/codeflame/payroll/api/attendance/register-report?compId=${selectedCompany}&year=${year}&month=${parseInt(month)}`,
     {
       headers:{
         Authorization:`Bearer ${token}`
@@ -404,7 +404,7 @@ export default function PayslipGenerator() {
 
     } catch (error) {
        if(error.response?.status === 401 || error.response?.status === 403){
-        navitgate("/login")
+        navigate("/login")
       }
       alert(error.message)
       console.log(error)

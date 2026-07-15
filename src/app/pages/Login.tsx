@@ -1,7 +1,7 @@
 "use client";
 
 import axios from "axios";
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { FaUserShield } from "react-icons/fa";
 import { toast } from "sonner";
 
@@ -17,43 +17,7 @@ export default function Login() {
   const navigate = useNavigate();
 
 
- useEffect(() => {
-    getCompinies()
-  }, [])
 
- const getToken = () => {
-    const token = localStorage.getItem("codeflame_payroll2003");
-    if (!token) {
-      toast.error("Session expired");
-      navigate("/login");
-      throw new Error("No token");
-    }
-    return token;
-  };
-
-    const getCompinies = async () => {
-    const token = getToken();
-
-    try {
-      const res = await axios.get("http://localhost:4000/codeflame/payroll/api/company", {
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
-      })
-
-      if(res.status === 200){
-        navigate("/admin")
-      }
-      
-
-    } catch (error: any) {
-      if(error.response?.status === 401 || error.response?.status === 403){
-        navigate("/login")
-      }
-      alert(error.message)
-      console.log(error)
-    }
-  }
 
 
 
@@ -83,7 +47,7 @@ export default function Login() {
 
     try {
       const response = await axios.post(
-        "http://localhost:4000/codeflame/payroll/api/auth/login",
+        "https://payroll-backend-pearl.vercel.app/codeflame/payroll/api/auth/login",
         { email, password }
       );
 
@@ -111,8 +75,8 @@ export default function Login() {
         return;
       }
 
-      const response = await axios.get(
-        `/api/v1/admin/forgot/${email}`
+      const response = await axios.post(
+        `https://payroll-backend-pearl.vercel.app/codeflame/payroll/api/auth/send-forgot-link/${email}`
       );
 
       toast.success(response.data.message);

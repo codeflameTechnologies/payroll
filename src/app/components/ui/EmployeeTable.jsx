@@ -224,7 +224,7 @@ export default function EmployeeTable({
                       <button
                         onClick={() =>
                           onDelete(
-                            employee.id
+                            employee._id
                           )
                         }
                         className="h-10 w-10 rounded-lg bg-red-100 text-red-600 flex items-center justify-center"

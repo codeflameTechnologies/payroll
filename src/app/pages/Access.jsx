@@ -43,7 +43,7 @@ export default function Access() {
     const token = localStorage.getItem("codeflame_payroll2003");
     if (!token) {
       toast.error("Please login again to continue.");
-      navigate("/login");
+      navigate("/");
       throw new Error("No token");
     }
 
@@ -55,7 +55,7 @@ export default function Access() {
 
     try {
       const token = getToken();
-      const response = await axios.get("http://localhost:4000/codeflame/payroll/api/access", {
+      const response = await axios.get("https://payroll-backend-pearl.vercel.app/codeflame/payroll/api/access", {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -71,7 +71,7 @@ export default function Access() {
       setAccessList(mappedAccess);
     } catch (error) {
        if(error.response?.status === 401 || error.response?.status === 403){
-        navitgate("/login")
+        navigate("/")
       }
       console.error(error);
       toast.error(error.response?.data?.message || "Unable to load access records.");
@@ -107,7 +107,7 @@ export default function Access() {
     try {
       const token = getToken();
       const response = await axios.post(
-        "http://localhost:4000/codeflame/payroll/api/access",
+        "https://payroll-backend-pearl.vercel.app/codeflame/payroll/api/access",
         { email: trimmedEmail },
         {
           headers: {
@@ -134,7 +134,7 @@ export default function Access() {
       toast.success(response.data?.message || "Access granted successfully.");
     } catch (error) {
        if(error.response?.status === 401 || error.response?.status === 403){
-        navitgate("/login")
+        navigate("/")
       }
       console.error(error);
       toast.error(error.response?.data?.message || "Unable to create access record.");
@@ -151,7 +151,7 @@ export default function Access() {
 
     try {
       const token = getToken();
-      await axios.delete(`http://localhost:4000/codeflame/payroll/api/access/${id}`, {
+      await axios.delete(`https://payroll-backend-pearl.vercel.app/codeflame/payroll/api/access/${id}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -165,7 +165,7 @@ export default function Access() {
       toast.success("Access removed successfully.");
     } catch (error) {
        if(error.response?.status === 401 || error.response?.status === 403){
-        navitgate("/login")
+        navigate("/")
       }
       console.error(error);
       toast.error(error.response?.data?.message || "Unable to remove access record.");
@@ -206,24 +206,7 @@ export default function Access() {
           </div>
 
           <div>
-            <label className="text-sm font-medium">Select Permissions</label>
-            <div className="grid grid-cols-2 gap-2 mt-2">
-              {FEATURES.map((feature) => (
-                <button
-                  key={feature}
-                  type="button"
-                  onClick={() => toggleFeature(feature)}
-                  className={`border rounded-lg p-2 text-sm flex items-center justify-between transition ${
-                    selectedFeatures.includes(feature)
-                      ? "bg-blue-600 text-white border-blue-600"
-                      : "hover:bg-gray-100"
-                  }`}
-                >
-                  {feature}
-                  {selectedFeatures.includes(feature) && <Check size={16} />}
-                </button>
-              ))}
-            </div>
+           
           </div>
         </div>
 
@@ -259,7 +242,7 @@ export default function Access() {
             <thead className="bg-gray-100">
               <tr>
                 <th className="text-left p-4">Email</th>
-                <th className="text-left p-4">Permissions</th>
+                
                 <th className="text-center p-4">Action</th>
               </tr>
             </thead>
@@ -275,22 +258,7 @@ export default function Access() {
                 filteredData.map((item) => (
                   <tr key={item.id} className="border-t">
                     <td className="p-4">{item.email}</td>
-                    <td className="p-4">
-                      <div className="flex flex-wrap gap-2">
-                        {item.permissions?.length ? (
-                          item.permissions.map((permission) => (
-                            <span
-                              key={permission}
-                              className="px-3 py-1 rounded-full bg-blue-100 text-blue-700 text-xs"
-                            >
-                              {permission}
-                            </span>
-                          ))
-                        ) : (
-                          <span className="text-sm text-gray-400">No permissions selected</span>
-                        )}
-                      </div>
-                    </td>
+                    
                     <td className="p-4 text-center">
                       <button
                         type="button"

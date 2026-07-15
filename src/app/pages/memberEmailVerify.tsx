@@ -62,7 +62,7 @@ export default function VerifyEmailPage() {
 
     setProcessing(true);
     try {
-      const response = await axios.post("http://localhost:4000/codeflame/payroll/api/access/verify-otp", {
+      const response = await axios.post("https://payroll-backend-pearl.vercel.app/codeflame/payroll/api/access/verify-otp", {
         email,
         otp: enteredOtp,
       });

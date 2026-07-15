@@ -1,10 +1,21 @@
-import { useState } from 'react';
-import { Outlet } from 'react-router';
+import { useEffect, useState } from 'react';
+import { Outlet, useNavigate } from 'react-router';
 import { Sidebar } from './sidebar';
 import { Header } from './header';
+import { toast } from 'sonner';
 
 export function AppLayout() {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const navigate = useNavigate()
+
+
+
+
+
+
+
+
+
 
   return (
     <div className="flex h-screen overflow-hidden bg-background">

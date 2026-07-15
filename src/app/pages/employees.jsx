@@ -4,6 +4,7 @@ import EmployeeModal from "../components/ui/EmployeeModal";
 import EmployeeTable from "../components/ui/EmployeeTable";
 import axios from "axios";
 import { useNavigate } from "react-router";
+import { toast } from "sonner";
 
 export default function EmployeeManagement() {
   // Demo company data
@@ -40,7 +41,7 @@ export default function EmployeeManagement() {
       const token = localStorage.getItem("codeflame_payroll2003");
       if (!token) {
         toast.error("Session expired");
-        navitgate("/login");
+        navitgate("/");
         throw new Error("No token");
       }
       return token;
@@ -50,7 +51,7 @@ export default function EmployeeManagement() {
     setLoading(true)
     const token = getToken();
     try {
-      const res = await axios.get(`http://localhost:4000/codeflame/payroll/api/employee/${companyFilter}`,{
+      const res = await axios.get(`https://payroll-backend-pearl.vercel.app/codeflame/payroll/api/employee/${companyFilter}`,{
         headers:{
           Authorization:`Bearer ${token}`
         }
@@ -59,7 +60,7 @@ export default function EmployeeManagement() {
       setEmployees(res.data.data)
     } catch (error) {
        if(error.response?.status === 401 || error.response?.status === 403){
-        navitgate("/login")
+        navigate("/")
       }
       console.log(error.message)
       alert(error.message)
@@ -72,7 +73,7 @@ export default function EmployeeManagement() {
   const getCompany = async () => {
    const token = getToken();
     try {
-      const res = await axios.get("http://localhost:4000/codeflame/payroll/api/company",{
+      const res = await axios.get("https://payroll-backend-pearl.vercel.app/codeflame/payroll/api/company",{
         headers:{
           Authorization:`Bearer ${token}`
         }
@@ -89,7 +90,7 @@ export default function EmployeeManagement() {
 
     } catch (error) {
        if(error.response?.status === 401 || error.response?.status === 403){
-        navitgate("/login")
+        navigate("/")
       }
       console.log(error.message)
     }
@@ -101,7 +102,7 @@ export default function EmployeeManagement() {
     const token = getToken();
     try {
       if (editingEmployee) {
-        const res = await axios.put(`http://localhost:4000/codeflame/payroll/api/employee/${employee._id}`,
+        const res = await axios.put(`https://payroll-backend-pearl.vercel.app/codeflame/payroll/api/employee/${employee._id}`,
            employee,
           {
             headers:{
@@ -113,7 +114,7 @@ export default function EmployeeManagement() {
        
       } else {
         console.log("....")
-        const res = await axios.post("http://localhost:4000/codeflame/payroll/api/employee",
+        const res = await axios.post("https://payroll-backend-pearl.vercel.app/codeflame/payroll/api/employee",
            employee,
             {
             headers:{
@@ -129,7 +130,7 @@ export default function EmployeeManagement() {
       setOpen(false);
     } catch (error) {
        if(error.response?.status === 401 || error.response?.status === 403){
-        navitgate("/login")
+        navigate("/")
       }
       console.log(error.message)
       alert(error.message)
@@ -142,19 +143,35 @@ export default function EmployeeManagement() {
   };
 
   // Delete Employee
-  const deleteEmployee = (id) => {
+  const deleteEmployee = async (id) => {
+    const token = getToken();
     const confirmDelete =
       window.confirm(
-        "Delete this employee?"
+        "Are you sure? This action delete all info related to this employee like attendance etc"
       );
 
     if (!confirmDelete) return;
+    setProcessing(true)
+    try {
+       const res = await axios.delete(`https://payroll-backend-pearl.vercel.app/codeflame/payroll/api/employee/${id}`,
+          {
+            headers:{
+              Authorization:`Bearer ${token}`
+            }
+          })
+        getEmployees()
+    } catch (error) {
+       if(error.response?.status === 401 || error.response?.status === 403){
+        navigate("/")
+      }
+      toast.error(error.message)
+      console.log(error.message)
+     
+    }finally{
+      setProcessing(false);
+    }
 
-    setEmployees((prev) =>
-      prev.filter(
-        (emp) => emp.id !== id
-      )
-    );
+   
   };
 
   // Edit Employee
@@ -166,7 +183,7 @@ export default function EmployeeManagement() {
   // Filter Employee List
   const filteredEmployees =
     useMemo(() => {
-      console.log(employees)
+    
       return employees.filter(
         (emp) => {
           const matchesCompany =

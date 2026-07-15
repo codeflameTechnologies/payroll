@@ -19,6 +19,8 @@ import Access from './pages/Access';
 import MemberLogin from "./pages/memberLogin"
 import MemberEmailVerify from "./pages/memberEmailVerify"
 import MemberPortal from "./pages/memberAttendance"
+import Home from './pages/Home';
+import ResetPassword from './pages/resetPassword';
 
 export const router = createBrowserRouter([
   {
@@ -127,16 +129,24 @@ export const router = createBrowserRouter([
         ]
       },
       {
+        path:'/',
+        Component:Home
+      },
+      {
         path:'/signup',
         Component:Signup
       },
       {
-        path:'/',
+        path:'/login',
         Component:Login
       },
       {
         path:'/email/verify/:email',
         Component:VerifyEmailPage
+      },
+      {
+        path:'/reset/password/:reset_token',
+        Component: ResetPassword
       },
       {
         path:'/member/login',

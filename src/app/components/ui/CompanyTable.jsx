@@ -71,7 +71,7 @@ export default function CompanyTable({
                 <button
                   onClick={() =>
                     onDelete(
-                      company.id
+                      company._id
                     )
                   }
                 >

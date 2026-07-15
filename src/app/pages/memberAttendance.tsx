@@ -2,6 +2,7 @@ import axios from "axios";
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router";
 import { toast } from "react-toastify";
+import { FaLongArrowAltRight } from "react-icons/fa";
 
 export default function AttendanceManagement() {
   const [employees, setEmployees] = useState([]);
@@ -9,7 +10,7 @@ export default function AttendanceManagement() {
   const [selectedCompany, setSelectedCompany] = useState("NONE");
   const [selectedDate, setSelectedDate] = useState("");
   const [leavePolicies, setLeavePolicies] = useState([]);
-  const navitgate = useNavigate();
+  const navigate = useNavigate();
 
 
 
@@ -43,7 +44,7 @@ export default function AttendanceManagement() {
     const token = localStorage.getItem("codeflame_payroll2003");
     if (!token) {
       toast.error("Session expired");
-      navitgate("/login");
+      navigate("/");
       throw new Error("No token");
     }
     return token;
@@ -60,7 +61,7 @@ export default function AttendanceManagement() {
     const token = getToken();
 
     try {
-      const res = await axios.get("http://localhost:4000/codeflame/payroll/api/company", {
+      const res = await axios.get("https://payroll-backend-pearl.vercel.app/codeflame/payroll/api/company", {
         headers: {
           Authorization: `Bearer ${token}`
         }
@@ -78,7 +79,7 @@ export default function AttendanceManagement() {
 
     } catch (error: any) {
        if(error.response?.status === 401 || error.response?.status === 403){
-        navitgate("/login")
+        navigate("/")
       }
       alert(error.message)
       console.log(error)
@@ -88,7 +89,7 @@ export default function AttendanceManagement() {
   const getAttendanceRecordByDate = async () => {
     const token = getToken();
     try {
-      const backendUrl = `http://localhost:4000/codeflame/payroll/api/attendance/company/${selectedCompany}?date=${selectedDate}`
+      const backendUrl = `https://payroll-backend-pearl.vercel.app/codeflame/payroll/api/attendance/company/${selectedCompany}?date=${selectedDate}`
       const response = await fetch(backendUrl, {
         method: "GET",
         headers: {
@@ -116,7 +117,7 @@ export default function AttendanceManagement() {
 
     } catch (error: any) {
        if(error.response?.status === 401 || error.response?.status === 403){
-        navitgate("/login")
+        navigate("/")
       }
       alert(error.message)
       console.log(error)
@@ -177,7 +178,7 @@ export default function AttendanceManagement() {
     })
     const token = getToken();
     try {
-      const res = await axios.post(`http://localhost:4000/codeflame/payroll/api/attendance?date=${selectedDate}`,
+      const res = await axios.post(`https://payroll-backend-pearl.vercel.app/codeflame/payroll/api/attendance?date=${selectedDate}`,
         { attendanceInfo: udpatedEmployee },
         {
           headers: {
@@ -190,11 +191,17 @@ export default function AttendanceManagement() {
       alert("Attendance Saved Successfully");
     } catch (error) {
        if(error.response?.status === 401 || error.response?.status === 403){
-        navitgate("/login")
+        navigate("/")
       }
       alert("Failed To Save Attendance");
     }
   };
+
+
+ const handleLogout = ()=>{
+    localStorage.removeItem("codeflame_payroll2003");
+    window.location.reload();
+ }
 
 
 
@@ -205,6 +212,13 @@ export default function AttendanceManagement() {
 
   return (
     <div className="p-6 space-y-6 max-w-7xl mx-auto">
+      <div className="flex justify-end">
+        <button onClick={handleLogout} className="text-xl flex border border-black px-2 py-1 cursor-pointer rounded-xs  items-center gap-2">
+          <span>Logout</span>
+          
+          <FaLongArrowAltRight /> 
+          </button>
+      </div>
       {/* UI Header Options Row */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-slate-50 p-4 rounded-xl border">
         <div>
