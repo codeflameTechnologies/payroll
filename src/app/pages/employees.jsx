@@ -110,7 +110,7 @@ export default function EmployeeManagement() {
             }
           })
         getEmployees()
-        alert(res.data.message)
+        toast.success(res.data.message)
        
       } else {
         console.log("....")
@@ -123,6 +123,7 @@ export default function EmployeeManagement() {
           }
           )
         getEmployees();
+        toast.success(res.data.message)
        
        
       }
@@ -133,7 +134,7 @@ export default function EmployeeManagement() {
         navigate("/")
       }
       console.log(error.message)
-      alert(error.message)
+      toast.error(error.response.message)
     } finally {
       setProcessing(false)
     }
