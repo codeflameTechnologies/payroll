@@ -10,7 +10,7 @@ export default function AttendanceManagement() {
   const [selectedCompany, setSelectedCompany] = useState("NONE");
   const [selectedDate, setSelectedDate] = useState("");
   const [leavePolicies, setLeavePolicies] = useState([]);
-  const [attendancProecessing,setAttendanceProcessing] = useState(false)
+  const [attendancProecessing, setAttendanceProcessing] = useState(false)
   const navitgate = useNavigate();
 
 
@@ -79,7 +79,7 @@ export default function AttendanceManagement() {
       }))
 
     } catch (error: any) {
-      if(error.response?.status === 401 || error.response?.status === 403){
+      if (error.response?.status === 401 || error.response?.status === 403) {
         navitgate("/")
       }
       toast.error(error.message)
@@ -117,7 +117,7 @@ export default function AttendanceManagement() {
       setEmployees(updatedEmployee)
 
     } catch (error: any) {
-       if(error.response?.status === 401 || error.response?.status === 403){
+      if (error.response?.status === 401 || error.response?.status === 403) {
         navitgate("/")
       }
       toast.error(error.message)
@@ -151,26 +151,29 @@ export default function AttendanceManagement() {
   const submitJson = () => {
     try {
       const parsed = JSON.parse(jsonData);
-      const updatedEmployees = employees.map((employee) => {
-        const record = parsed.find((item) => item.id === employee.id);
-        if (!record) return employee;
+      const updatedEmployees = employees.map((employee:any) => {
         return {
-          ...employee,
-          checkIn: record.checkIn || "",
-          checkOut: record.checkOut || "",
-          status: record.status || "Present",
-          workingHours: calculateHours(record.checkIn, record.checkOut),
-        };
+          companyId:employee.companyId,
+          companyName:employee.companyName,
+          id:employee.id,
+          empErpId:employee.empErpId,
+          name:employee.name,
+          checkIn:parsed.find((emp:any)=>emp.id === employee.id).checkIn,
+          checkOut:parsed.find((emp:any)=>emp.id === employee.id).checkOut,
+          status:parsed.find((emp:any)=>emp.id === employee.id).status,
+          workingHours:parsed.find((emp:any)=>emp.id === employee.id).workingHours,
+        }
       });
+      console.log(updatedEmployees)
       setEmployees(updatedEmployees);
-      alert("Attendance Filled Successfully");
+      toast.success("Attendance Filled Successfully");
     } catch (error) {
       alert("Invalid JSON Format");
     }
   };
 
   const saveAttendance = async () => {
-   
+
     const udpatedEmployee = employees.map((emp) => {
       emp.status = emp.status.length === 0 ? "Present" : emp.status;
       emp.checkIn = emp.checkIn.length === 0 ? "00:00" : emp.checkIn
@@ -191,12 +194,12 @@ export default function AttendanceManagement() {
       )
       console.log(res.data)
       alert("Attendance Saved Successfully");
-    } catch (error:any) {
-       if(error.response?.status === 401 || error.response?.status === 403){
+    } catch (error: any) {
+      if (error.response?.status === 401 || error.response?.status === 403) {
         navitgate("/")
       }
       toast.error("Failed To Save Attendance");
-    }finally{
+    } finally {
       setAttendanceProcessing(false)
     }
   };
@@ -253,9 +256,9 @@ export default function AttendanceManagement() {
           />
 
 
-          <button disabled={attendancProecessing} onClick={saveAttendance} className={` ${attendancProecessing?"bg-blue-400 cursor-not-allowed":"bg-blue-600 cursor-pointer"} flex items-center gap-2 hover:bg-blue-700 text-white text-sm font-semibold px-4 py-2 rounded-lg shadow-sm transition`}>
-            {attendancProecessing && <LoaderCircle/>} <span>{attendancProecessing ? " Saving Attendance":"Save Attendance"}</span>
-           
+          <button disabled={attendancProecessing} onClick={saveAttendance} className={` ${attendancProecessing ? "bg-blue-400 cursor-not-allowed" : "bg-blue-600 cursor-pointer"} flex items-center gap-2 hover:bg-blue-700 text-white text-sm font-semibold px-4 py-2 rounded-lg shadow-sm transition`}>
+            {attendancProecessing && <LoaderCircle />} <span>{attendancProecessing ? " Saving Attendance" : "Save Attendance"}</span>
+
           </button>
 
 
