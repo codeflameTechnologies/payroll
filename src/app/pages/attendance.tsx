@@ -1,4 +1,5 @@
 import axios from "axios";
+import { LoaderCircle } from "lucide-react";
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router";
 import { toast } from "react-toastify";
@@ -9,6 +10,7 @@ export default function AttendanceManagement() {
   const [selectedCompany, setSelectedCompany] = useState("NONE");
   const [selectedDate, setSelectedDate] = useState("");
   const [leavePolicies, setLeavePolicies] = useState([]);
+  const [attendancProecessing,setAttendanceProcessing] = useState(false)
   const navitgate = useNavigate();
 
 
@@ -80,7 +82,7 @@ export default function AttendanceManagement() {
       if(error.response?.status === 401 || error.response?.status === 403){
         navitgate("/")
       }
-      alert(error.message)
+      toast.error(error.message)
       console.log(error)
     }
   }
@@ -118,7 +120,7 @@ export default function AttendanceManagement() {
        if(error.response?.status === 401 || error.response?.status === 403){
         navitgate("/")
       }
-      alert(error.message)
+      toast.error(error.message)
       console.log(error)
     }
   }
@@ -176,6 +178,7 @@ export default function AttendanceManagement() {
       return emp;
     })
     const token = getToken();
+    setAttendanceProcessing(true)
     try {
       const res = await axios.post(`https://payroll-backend-pearl.vercel.app/codeflame/payroll/api/attendance?date=${selectedDate}`,
         { attendanceInfo: udpatedEmployee },
@@ -192,7 +195,9 @@ export default function AttendanceManagement() {
        if(error.response?.status === 401 || error.response?.status === 403){
         navitgate("/")
       }
-      alert("Failed To Save Attendance");
+      toast.error("Failed To Save Attendance");
+    }finally{
+      setAttendanceProcessing(false)
     }
   };
 
@@ -248,8 +253,9 @@ export default function AttendanceManagement() {
           />
 
 
-          <button onClick={saveAttendance} className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-4 py-2 rounded-lg shadow-sm transition">
-            Save Attendance
+          <button disabled={attendancProecessing} onClick={saveAttendance} className={` ${attendancProecessing?"bg-blue-400 cursor-not-allowed":"bg-blue-600 cursor-pointer"}  hover:bg-blue-700 text-white text-sm font-semibold px-4 py-2 rounded-lg shadow-sm transition`}>
+            {attendancProecessing && <LoaderCircle/>}{attendancProecessing ? " Saving Attendance":"Save Attendance"}
+           
           </button>
 
 
