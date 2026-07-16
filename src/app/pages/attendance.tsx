@@ -253,8 +253,8 @@ export default function AttendanceManagement() {
           />
 
 
-          <button disabled={attendancProecessing} onClick={saveAttendance} className={` ${attendancProecessing?"bg-blue-400 cursor-not-allowed":"bg-blue-600 cursor-pointer"}  hover:bg-blue-700 text-white text-sm font-semibold px-4 py-2 rounded-lg shadow-sm transition`}>
-            {attendancProecessing && <LoaderCircle/>}{attendancProecessing ? " Saving Attendance":"Save Attendance"}
+          <button disabled={attendancProecessing} onClick={saveAttendance} className={` ${attendancProecessing?"bg-blue-400 cursor-not-allowed":"bg-blue-600 cursor-pointer"} flex items-center gap-2 hover:bg-blue-700 text-white text-sm font-semibold px-4 py-2 rounded-lg shadow-sm transition`}>
+            {attendancProecessing && <LoaderCircle/>} <span>{attendancProecessing ? " Saving Attendance":"Save Attendance"}</span>
            
           </button>
 
