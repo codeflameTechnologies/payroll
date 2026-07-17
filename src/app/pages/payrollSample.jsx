@@ -139,32 +139,49 @@ function Payroll({ emp, index, cmp }) {
 
   }
 
-  const oneDayBasicSalary = emp.rates["Basic Salary"] / emp.attendance.totalDaysInMonth;
+  const payableDays =
+    emp.attendance.totalDaysInMonth - totalHoliday;
 
-  const oneHourBasicPayment = oneDayBasicSalary / emp.workingHour;
+  const totalWorkingHours = payableDays * emp.workingHour;
 
-  const oneDayBasicHRA = emp.rates.HRA / emp.attendance.totalDaysInMonth
+  // Basic
+  const oneHourBasicPayment =
+    emp.rates["Basic Salary"] / totalWorkingHours;
 
-  const oneHourHRAPayment = oneDayBasicHRA / emp.workingHour
+  // HRA
+  const oneHourHRAPayment =
+    emp.rates.HRA / totalWorkingHours;
+
+  // Employee worked hours
+  const employeeWorkingHour = emp.attendance.workingRecord.reduce(
+    (sum, wh) => sum + Number(wh.workingHours),
+    0
+  );
 
 
 
-  const totalWorkingHour = emp.attendance.totalDaysInMonth * emp.workingHour - (totalHoliday * emp.workingHour);
 
-  const employeeWorkingHour = emp.attendance.workingRecord.reduce((sum, wh) => sum + Number(wh.workingHours), 0)
+  const earnedRates = {};
 
-  const overTime = (totalWorkingHour - employeeWorkingHour) < 0 ? (totalWorkingHour - employeeWorkingHour) * -1 : 0;
+  for (const component in emp.rates) {
+    const monthlyAmount = Number(emp.rates[component]) || 0;
+
+    const hourlyRate = monthlyAmount / totalWorkingHours;
+
+    earnedRates[component] = hourlyRate * employeeWorkingHour;
+  }
 
 
-
-  const totalEarnings = Object.values(emp.rates).reduce((sum, value) => sum + (Number(value) || 0), 0);
+  const revisedTotalEarnings = Object.values(earnedRates).reduce(
+    (sum, value) => sum + value,
+    0
+  );
 
   const totalDeductions = Object.values(emp.deductions).reduce((sum, value) => sum + (Number(value) || 0), 0);
 
-  const netSalary = totalEarnings - totalDeductions;
+  const netSalary = revisedTotalEarnings - totalDeductions;
 
-  const basicSalary = emp.rates["Basic Salary"];
-  const hra = emp.rates.HRA
+
 
 
   return (
@@ -240,46 +257,27 @@ function Payroll({ emp, index, cmp }) {
 
 
 
-
-      {rateArr.map((e, i) => (
-
+      {rateArr.map((e) => (
         <tr key={e.ctn}>
-
           <td className="border w-[110px] border-black pl-2">
             {e.ctn}
           </td>
 
           <td className="border border-black w-[20px] text-center px-2">
-            {e.value || 0}
+            {Number(e.value).toFixed(2)}
           </td>
 
-          <td className="border border-black w-11  text-center">
-            0
+          <td className="border border-black w-11 text-center">
+            {0}
           </td>
 
           <td className="border border-black px-2 text-center">
-
-            {e.ctn === "Basic Salary"
-              ? (oneDayBasicSalary * paydays).toFixed(2)
-              : e.ctn === "HRA"
-                ? (oneDayBasicHRA * paydays).toFixed(2)
-                : Number(e.value || 0).toFixed(2)}
-
+            {(earnedRates[e.ctn] || 0).toFixed(2)}
           </td>
-
-
-
         </tr>
-
       ))}
 
 
-      <td
-
-        className="border border-black text-center px-2 align-top font-semibold"
-      >
-        {overTime}/{(overTime * oneHourBasicPayment).toFixed(2)}
-      </td>
 
 
 
@@ -290,7 +288,7 @@ function Payroll({ emp, index, cmp }) {
 
 
       <td className='border-r text-center text-xs pt-[2%] px-2 border-black'>
-        {((totalEarnings + (oneDayBasicSalary * paydays) + (oneDayBasicHRA * paydays) + (overTime * oneHourBasicPayment)) - basicSalary - hra).toFixed(2)}
+        {revisedTotalEarnings.toFixed(2)}
       </td>
       <td className='border-r border-black w-44'>
         {deductionArr.map((d) => {
@@ -305,7 +303,7 @@ function Payroll({ emp, index, cmp }) {
         })}
       </td>
       <td className='border-r border-black text-center text-xs px-1 pt-[2%] '>{totalDeductions}</td>
-      <td className='border-r border-black text-center text-xs px-1 pt-[2%] '>{(((totalEarnings + (oneDayBasicSalary * paydays) + (oneDayBasicHRA * paydays) + (overTime * oneHourBasicPayment)) - basicSalary - hra) - totalDeductions).toFixed(2)}</td>
+      <td className='border-r border-black text-center text-xs px-1 pt-[2%] '>{netSalary}</td>
 
       {/* Bank Details Field Layout */}
       <td className="p-1 text-[8px] font-sans leading-tight">
@@ -385,13 +383,13 @@ export default function PayrollRegister() {
   };
 
   const getCompanies = async () => {
-   const token = getToken();
+    const token = getToken();
     try {
 
       const res = await axios.get("https://payroll-backend-pearl.vercel.app/codeflame/payroll/api/company",
         {
-          headers:{
-            Authorization:`Bearer ${token}`
+          headers: {
+            Authorization: `Bearer ${token}`
           }
         }
       )
@@ -412,7 +410,7 @@ export default function PayrollRegister() {
 
     } catch (error) {
 
-       if(error.response?.status === 401 || error.response?.status === 403){
+      if (error.response?.status === 401 || error.response?.status === 403) {
         navigate("/")
       }
       alert(error.message)
@@ -500,7 +498,7 @@ export default function PayrollRegister() {
 
 
     } catch (error) {
-       if(error.response?.status === 401 || error.response?.status === 403){
+      if (error.response?.status === 401 || error.response?.status === 403) {
         navigate("/")
       }
       alert(error.message)
@@ -702,7 +700,6 @@ export default function PayrollRegister() {
               <th className="border-r border-black p-1 w-36" rowSpan="2">Paydays</th>
 
               <th className="border-r border-black p-1" >Rate of Salary / Earnings / Arrear / Total</th>
-              <th className="border-r border-black p-1" rowSpan={2} >Hrs/AMT</th>
               <th className="border-r border-black p-1" rowSpan={2} >Gross</th>
 
 

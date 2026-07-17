@@ -44,12 +44,9 @@ const PayslipItem = ({ emp, selectedCompanyDetail }) => {
   const halfdays = emp.attendance["Half Day"] || 0;
   payDays = payDays - halfdays * 0.5;
 
-  const oneDayBasicSalary = emp.rates["Basic Salary"] / emp.attendance.totalDaysInMonth;
-  const oneHourBasicPayment = oneDayBasicSalary / emp.workingHour;
-  const oneDayBasicHRA = emp.rates.HRA / emp.attendance.totalDaysInMonth
-  const oneHourHRAPayment = oneDayBasicHRA / emp.workingHour 
 
- let totalHoliday = 0;
+
+  let totalHoliday = 0;
 
   for (const key in emp.attendance) {
 
@@ -74,26 +71,56 @@ const PayslipItem = ({ emp, selectedCompanyDetail }) => {
   }
 
 
+  const payableDays =
+    emp.attendance.totalDaysInMonth - totalHoliday;
+
+  const totalWorkingHours = payableDays * emp.workingHour;
+
+  // Basic
+  const oneHourBasicPayment =
+    emp.rates["Basic Salary"] / totalWorkingHours;
+
+  // HRA
+  const oneHourHRAPayment =
+    emp.rates.HRA / totalWorkingHours;
+
+  // Employee worked hours
+  const employeeWorkingHour = emp.attendance.workingRecord.reduce(
+    (sum, wh) => sum + Number(wh.workingHours),
+    0
+  );
 
 
 
 
+  const earnedRates = {};
+
+  for (const component in emp.rates) {
+    const monthlyAmount = Number(emp.rates[component]) || 0;
+
+    const hourlyRate = monthlyAmount / totalWorkingHours;
+
+    earnedRates[component] = hourlyRate * employeeWorkingHour;
+  }
 
 
-  const totalWorkingHour = emp.attendance.totalDaysInMonth * emp.workingHour - (totalHoliday * emp.workingHour);
-  const employeeWorkingHour = emp.attendance.workingRecord.reduce((sum, wh) => sum + Number(wh.workingHours), 0)
-
-  const overTime = (totalWorkingHour - employeeWorkingHour) < 0 ? (totalWorkingHour - employeeWorkingHour) * -1 : 0;
-
-  const totalEarnings = Object.values(emp.rates).reduce((sum, value) => sum + (Number(value) || 0), 0);
-
+  const revisedTotalEarnings = Object.values(earnedRates).reduce(
+    (sum, value) => sum + value,
+    0
+  );
 
   const totalDeductions = Object.values(emp.deductions).reduce((sum, value) => sum + (Number(value) || 0), 0);
-  // const netSalary = totalEarnings - totalDeductions;
+
+  const netSalary = revisedTotalEarnings - totalDeductions;
 
 
-  const basicSalary = emp.rates["Basic Salary"];
-  const hra = emp.rates.HRA
+
+
+
+
+
+
+
 
 
 
@@ -115,7 +142,7 @@ const PayslipItem = ({ emp, selectedCompanyDetail }) => {
       {/* Header section */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', borderBottom: '1px solid #000', paddingBottom: '5px' }}>
         <div>
-          <h2 style={{ margin: '0', fontSize: '15px', fontWeight: 'bold' }}>{selectedCompanyDetail.companyName}</h2>
+          <h2 style={{ margin: '0', fontSize: '15px', fontWeight: 'bold' }}>GURUKIRPA ENTERPRISES</h2>
           <p style={{ margin: '2px 0 0 0', fontSize: '9px', textTransform: 'uppercase' }}>BHIWADI, DISTT ALWAR, RAJASTHAN</p>
         </div>
         <div style={{ textAlign: 'center' }}>
@@ -188,30 +215,31 @@ const PayslipItem = ({ emp, selectedCompanyDetail }) => {
               </tr>
             </thead>
             <tbody>
-              {rateArr.map((elm) => {
-                return (
-                  <>
-                    <tr key={elm.ctn}>
-                      <td style={{ padding: "3px" }}>{elm.ctn}</td>
-                      <td style={{ textAlign: "right" }}>{elm.value}</td>
-                      <td style={{ textAlign: "right" }}>0</td>
-                      <td style={{ textAlign: "right", fontWeight: "bold" }}>
-                        {elm.ctn === "Basic Salary"
-                          ? (oneDayBasicSalary * payDays).toFixed(2)
-                          : elm.ctn === "HRA"
-                            ? (oneDayBasicHRA * payDays).toFixed(2)
-                            : Number(elm.value || 0).toFixed(2)}
-                      </td>
-                    </tr>
-                  </>
-                )
-              })}
+              {rateArr.map((e) => (
+                <tr key={e.ctn}>
+                  <td className="border w-[110px] border-black pl-2">
+                    {e.ctn}
+                  </td>
+
+                  <td className="border border-black w-[20px] text-center px-2">
+                    {Number(e.value).toFixed(2)}
+                  </td>
+
+                  <td className="border border-black w-11 text-center">
+                    {0}
+                  </td>
+
+                  <td className="border border-black px-2 text-center">
+                    {(earnedRates[e.ctn] || 0).toFixed(2)}
+                  </td>
+                </tr>
+              ))}
 
               <tr style={{ backgroundColor: '#f0f0f0', borderTop: '1px solid #000', fontWeight: 'bold' }}>
                 <td style={{ padding: '3px' }}>TOTAL / कुल योग :</td>
                 <td style={{ textAlign: 'right' }}>14186.00</td>
                 <td style={{ textAlign: 'right' }}>0</td>
-                <td style={{ textAlign: 'right' }} className='pl-2'>{((totalEarnings + (oneDayBasicSalary * payDays) + (oneDayBasicHRA * payDays) + (overTime * oneHourBasicPayment)) - basicSalary - hra).toFixed(2)}</td>
+                <td style={{ textAlign: 'right' }} className='pl-2'>{revisedTotalEarnings.toFixed(2)}</td>
               </tr>
             </tbody>
           </table>
@@ -259,7 +287,7 @@ const PayslipItem = ({ emp, selectedCompanyDetail }) => {
         </div>
         <div style={{ width: '30%', border: '1px solid #000', textAlign: 'center', padding: '5px', alignSelf: 'center', backgroundColor: '#f9f9f9' }}>
           <span style={{ fontSize: '10px', fontWeight: 'bold' }}>NET SALARY PAYABLE</span>
-          <h3 style={{ margin: '3px 0 0 0', fontSize: '16px', fontWeight: 'bold' }}>₹ {(((totalEarnings + (oneDayBasicSalary * payDays) + (oneDayBasicHRA * payDays) + (overTime * oneHourBasicPayment)) - basicSalary - hra) - totalDeductions).toFixed(2)}.00</h3>
+          <h3 style={{ margin: '3px 0 0 0', fontSize: '16px', fontWeight: 'bold' }}>₹ {netSalary}</h3>
         </div>
       </div>
     </div>
@@ -272,7 +300,7 @@ export default function PayslipGenerator() {
   const [employeeRecord, setEmployeeRecord] = useState([])
   const [selectedCompany, setSelectedCompany] = useState("")
   const [selectedCompanyDetail, setSelectedCompanyDetail] = useState({})
-  const [reportDate,setReportDate] = useState("")
+  const [reportDate, setReportDate] = useState("")
   const [companies, setCompanies] = useState([]);
   const navigate = useNavigate();
 
@@ -287,7 +315,7 @@ export default function PayslipGenerator() {
 
   useEffect(() => {
     (selectedCompany && reportDate) && getAttendanceRecord();
-  }, [selectedCompany,reportDate])
+  }, [selectedCompany, reportDate])
 
   const getToken = () => {
     const token = localStorage.getItem("codeflame_payroll2003");
@@ -310,8 +338,8 @@ export default function PayslipGenerator() {
     try {
       const res = await axios.get("https://payroll-backend-pearl.vercel.app/codeflame/payroll/api/company",
         {
-          headers:{
-            Authorization:`Bearer ${token}`
+          headers: {
+            Authorization: `Bearer ${token}`
           }
         }
       )
@@ -327,7 +355,7 @@ export default function PayslipGenerator() {
       }))
 
     } catch (error) {
-       if(error.response?.status === 401 || error.response?.status === 403){
+      if (error.response?.status === 401 || error.response?.status === 403) {
         navigate("/login")
       }
       alert(error.message)
@@ -338,16 +366,16 @@ export default function PayslipGenerator() {
 
 
   const getAttendanceRecord = async () => {
-      const [year,month] = reportDate.split("-");
-      const token = getToken();
+    const [year, month] = reportDate.split("-");
+    const token = getToken();
     try {
       const res = await axios.get(`https://payroll-backend-pearl.vercel.app/codeflame/payroll/api/attendance/register-report?compId=${selectedCompany}&year=${year}&month=${parseInt(month)}`,
-    {
-      headers:{
-        Authorization:`Bearer ${token}`
-      }
-    });
-   
+        {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        });
+
       const groupedEmployees = Object.values(
         res.data.data.reduce((acc, record) => {
           const emp = record.empId;
@@ -397,13 +425,13 @@ export default function PayslipGenerator() {
           return acc;
         }, {})
       );
-      
+
       setEmployeeRecord(groupedEmployees)
 
 
 
     } catch (error) {
-       if(error.response?.status === 401 || error.response?.status === 403){
+      if (error.response?.status === 401 || error.response?.status === 403) {
         navigate("/login")
       }
       alert(error.message)

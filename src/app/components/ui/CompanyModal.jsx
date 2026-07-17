@@ -17,28 +17,7 @@ export default function CompanyModal({
       website: "",
       address: "",
       earning: [
-        {
-          id: 1,
-          name: "Basic Salary",
-          calculationType: "percentage",
-          value: 50,
-        },
-      ],
-      deduction: [
-        {
-          id: 1,
-          name: "PF",
-          calculationType: "percentage",
-          value: 12,
-        },
-      ],
-      leavePolicies: [
-        {
-          id: 1,
-          name: "Casual Leave",
-          days: 12,
-          paid: true,
-        },
+        
       ],
     }
   );
