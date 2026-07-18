@@ -1,4 +1,4 @@
-import { Link, useLocation } from 'react-router';
+import { Link, useLocation, useNavigate } from 'react-router';
 import { cn } from '../ui/utils';
 import {
   LayoutDashboard,
@@ -47,12 +47,14 @@ interface SidebarProps {
 
 export function Sidebar({ collapsed, onToggle }: SidebarProps) {
   const location = useLocation();
+  const navigate = useNavigate()
 
 
 
-   const handleLogout = ()=>{
+const handleLogout = ()=>{
     localStorage.removeItem("codeflame_payroll2003");
-    window.location.reload();
+    navigate("/")
+    
  }
 
   return (

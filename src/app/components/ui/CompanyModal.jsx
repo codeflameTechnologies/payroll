@@ -17,9 +17,10 @@ export default function CompanyModal({
       website: "",
       address: "",
       earning: [
-        
+
       ],
-      deduction:[]
+      deduction: [],
+      leavePolicies: [],
     }
   );
 
@@ -131,8 +132,8 @@ export default function CompanyModal({
             className="bg-blue-600 text-white px-8 py-3 rounded-xl"
           >
             {processing ? (
-              
-             <span className="flex items-center gap-2"><LoaderCircle className="animate-spin" /> Saving... </span> 
+
+              <span className="flex items-center gap-2"><LoaderCircle className="animate-spin" /> Saving... </span>
             ) : (
               "Save Company"
             )}
