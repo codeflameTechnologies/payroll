@@ -9,14 +9,13 @@ export default function SalaryComponents({
     setData([
       ...data,
       {
-        id: crypto.randomUUID(),
+        id: data.length+1,
         code: "",
         name: "",
         calculationType: "fixed",
         basedOn: "gross",
         value: 0,
         prorata: false,
-        overtimeEligible: false,
         taxable: true,
       },
     ]);
@@ -61,7 +60,6 @@ export default function SalaryComponents({
         <div>Based On</div>
         <div>Value</div>
         <div className="text-center">Prorata</div>
-        <div className="text-center">OT</div>
         <div className="text-center">Tax</div>
         <div></div>
       </div>
@@ -75,18 +73,10 @@ export default function SalaryComponents({
 
           <input
             className="input"
-            placeholder="Basic Salary"
+            placeholder="Name"
             value={item.name}
             onChange={(e) => {
               update(item.id, "name", e.target.value);
-
-              update(
-                item.id,
-                "code",
-                e.target.value
-                  .toLowerCase()
-                  .replaceAll(" ", "_")
-              );
             }}
           />
 
@@ -109,13 +99,8 @@ export default function SalaryComponents({
             </option>
           </select>
 
-          {/* Based On */}
-
-          <select
+         <select
             className="input"
-            disabled={
-              item.calculationType === "fixed"
-            }
             value={item.basedOn}
             onChange={(e) =>
               update(
@@ -133,6 +118,7 @@ export default function SalaryComponents({
               Basic
             </option>
           </select>
+         
 
           {/* Value */}
 
@@ -165,21 +151,7 @@ export default function SalaryComponents({
             />
           </div>
 
-          {/* OT */}
-
-          <div className="flex justify-center">
-            <input
-              type="checkbox"
-              checked={item.overtimeEligible}
-              onChange={(e) =>
-                update(
-                  item.id,
-                  "overtimeEligible",
-                  e.target.checked
-                )
-              }
-            />
-          </div>
+          
 
           {/* Tax */}
 

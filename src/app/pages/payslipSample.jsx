@@ -4,47 +4,114 @@ import { useNavigate } from 'react-router';
 import { useReactToPrint } from 'react-to-print';
 
 
+const monthObj = {
+  1: "January",
+  2: "February",
+  3: "March",
+  4: "April",
+  5: "May",
+  6: "June",
+  7: "July",
+  8: "August",
+  9: "September",
+  10: "October",
+  11: "November",
+  12: "December",
+};
 
 
 
 // --- SINGLE PAYSLIP TEMPLATE ---
-const PayslipItem = ({ emp, selectedCompanyDetail }) => {
+const PayslipItem = ({ emp, selectedCompanyDetail,reportDate }) => {
+  const [year, month] = reportDate.split("-")
+  const monthYear = `${monthObj[Number(month)]} ${year}`
 
-  const monthYear = "MARCH, 2026";
-  const totalDays = 31.0;
+
+  const attendanceArr = []
+  for(const key in emp.attendance){
+      if(key !== "Present" && key != "workingRecord" && key !== "totalDaysInMonth"){
+        attendanceArr.push({status:key,value:emp.attendance[key]})
+      }
+  }
+
   const paidLeave = selectedCompanyDetail.leavePolicies.filter((lv) => {
-    return lv.paid === true
-  });
-  let payDays = 0;
-  const rateArr = [];
-  for (const key in emp.rates) {
-    rateArr.push({
-      ctn: key,
-      value: emp.rates[key]
-    })
-  }
-  const deductionArr = [];
-  for (const key in emp.deductions) {
-    deductionArr.push({
-      ctn: key,
-      value: emp.deductions[key]
-    })
-  }
-  const attendanceArr = [];
-  for (const key in emp.attendance) {
-    if (key !== "workingRecord" && key !== "totalDaysInMonth") {
-      attendanceArr.push({ status: key, value: emp.attendance[key] });
 
-    }
-    if (paidLeave.some(obj => obj.name === key) || key === "Present") {
-      console.log(payDays, emp.attendance[key])
-      payDays += emp.attendance[key];
-    }
-  }
+    return lv.paid === true;
+
+  })
+
+  const unpaidLeave = selectedCompanyDetail.leavePolicies.filter((lv) => {
+
+    return lv.paid == false;
+
+  })
+  const paydayArr = [];
+
+  const leaveMatrics = [];
+
+  paidLeave.map((pl) => {
+
+    paydayArr.push({
+
+      name: pl.name,
+
+      value: emp.attendance[pl.name] || 0
+
+    })
+
+  })
+
+
+
+
+  unpaidLeave.map((ul) => {
+
+    leaveMatrics.push({
+
+      name: ul.name,
+
+      value: emp.attendance[ul.name] || 0
+
+    })
+
+  })
   const halfdays = emp.attendance["Half Day"] || 0;
-  payDays = payDays - halfdays * 0.5;
 
 
+
+
+
+
+
+
+
+  const rateArr = [];
+
+  for (const key in emp.rates) {
+
+    rateArr.push({
+
+      ctn: key,
+
+      value: emp.rates[key]
+
+    })
+
+  }
+
+  const deductionArr = [];
+
+  for (const key in emp.deductions) {
+
+    deductionArr.push({
+
+      ctn: key,
+
+      value: emp.deductions[key]
+
+    })
+
+  }
 
   let totalHoliday = 0;
 
@@ -70,19 +137,11 @@ const PayslipItem = ({ emp, selectedCompanyDetail }) => {
 
   }
 
-
   const payableDays =
     emp.attendance.totalDaysInMonth - totalHoliday;
 
   const totalWorkingHours = payableDays * emp.workingHour;
 
-  // Basic
-  const oneHourBasicPayment =
-    emp.rates["Basic Salary"] / totalWorkingHours;
-
-  // HRA
-  const oneHourHRAPayment =
-    emp.rates.HRA / totalWorkingHours;
 
   // Employee worked hours
   const employeeWorkingHour = emp.attendance.workingRecord.reduce(
@@ -93,14 +152,34 @@ const PayslipItem = ({ emp, selectedCompanyDetail }) => {
 
 
 
+  const presentDays = employeeWorkingHour / emp.workingHour;
+  attendanceArr.push({
+
+    status: "Present",
+
+    value: presentDays.toFixed(2) || 0
+
+  })
+   const paydays = paydayArr.reduce((sum, d) => sum + Number(d.value), 0) + presentDays;
+  
+
+
+
   const earnedRates = {};
-
+  
   for (const component in emp.rates) {
+    const isProrata = selectedCompanyDetail.earnings?.find((e) => e.name === component)?.prorata;
     const monthlyAmount = Number(emp.rates[component]) || 0;
+    console.log(isProrata)
+    if (isProrata) {
 
-    const hourlyRate = monthlyAmount / totalWorkingHours;
 
-    earnedRates[component] = hourlyRate * employeeWorkingHour;
+      const hourlyRate = monthlyAmount / totalWorkingHours;
+
+      earnedRates[component] = hourlyRate * employeeWorkingHour;
+    } else {
+      earnedRates[component] = monthlyAmount
+    }
   }
 
 
@@ -111,7 +190,7 @@ const PayslipItem = ({ emp, selectedCompanyDetail }) => {
 
   const totalDeductions = Object.values(emp.deductions).reduce((sum, value) => sum + (Number(value) || 0), 0);
 
-  const netSalary = revisedTotalEarnings - totalDeductions;
+  const netSalary = (revisedTotalEarnings - totalDeductions).toFixed(2);
 
 
 
@@ -198,7 +277,7 @@ const PayslipItem = ({ emp, selectedCompanyDetail }) => {
               })}
 
 
-              <tr style={{ borderTop: '1px solid #000', fontWeight: 'bold' }}><td style={{ padding: '3px' }}>Paydays / कुल दिन:</td><td style={{ textAlign: 'right', padding: '3px' }}>{payDays}</td></tr>
+              <tr style={{ borderTop: '1px solid #000', fontWeight: 'bold' }}><td style={{ padding: '3px' }}>Paydays / कुल दिन:</td><td style={{ textAlign: 'right', padding: '3px' }}>{paydays}</td></tr>
             </tbody>
           </table>
         </div>
@@ -511,7 +590,7 @@ export default function PayslipGenerator() {
       <div style={{ display: 'flex', flexDirection: 'column', gap: '25px', alignItems: 'center' }}>
         <div ref={componentRef} style={{ backgroundColor: '#fff', boxShadow: '0 4px 12px rgba(0,0,0,0.05)' }}>
           {employeeRecord.map((employee) => (
-            <PayslipItem key={employee.empCode} emp={employee} selectedCompanyDetail={selectedCompanyDetail} />
+            <PayslipItem key={employee.empCode} emp={employee} selectedCompanyDetail={selectedCompanyDetail} reportDate={reportDate} />
           ))}
         </div>
       </div>

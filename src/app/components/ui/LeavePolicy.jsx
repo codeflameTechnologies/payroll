@@ -39,7 +39,10 @@ const update = (
   };
 
 
-
+ const remove = (id) => {
+ 
+    setData(data.filter((item) => item.id !== id));
+  };
 
 
 
@@ -101,7 +104,7 @@ const update = (
             </option>
           </select>
 
-          <button className="bg-red-100 rounded-lg">
+          <button onClick={()=>remove(item.id)} className="bg-red-100 rounded-lg">
             <Trash2 className="mx-auto text-red-600" />
           </button>
         </div>

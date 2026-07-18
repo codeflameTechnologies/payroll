@@ -1,8 +1,38 @@
 import axios from "axios";
+import { LoaderCircle } from "lucide-react";
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router";
-import { toast } from "react-toastify";
-import { FaLongArrowAltRight } from "react-icons/fa";
+import { toast } from "sonner";
+import { Copy } from "lucide-react";
+
+const aiPrompt = `
+Convert the uploaded attendance sheet into a valid JSON array.
+
+Rules:
+1. Return ONLY valid JSON.
+2. No markdown.
+3. Use 24-hour time format.
+4. Calculate workingHours.
+5. Preserve Employee IDs exactly.
+
+Format:
+
+[
+  {
+    "id":"EMP001",
+    "name":"Rohan"
+    "checkIn":"09:30",
+    "checkOut":"17:30",
+    "workingHours":8,
+    "status":"Present"
+  }
+]
+`;
+
+const copyPrompt = async () => {
+  await navigator.clipboard.writeText(aiPrompt);
+  toast.success("AI Prompt copied successfully.");
+};
 
 export default function AttendanceManagement() {
   const [employees, setEmployees] = useState([]);
@@ -10,12 +40,8 @@ export default function AttendanceManagement() {
   const [selectedCompany, setSelectedCompany] = useState("NONE");
   const [selectedDate, setSelectedDate] = useState("");
   const [leavePolicies, setLeavePolicies] = useState([]);
-  const navigate = useNavigate();
-
-
-
-
-
+  const [attendancProecessing, setAttendanceProcessing] = useState(false)
+  const navitgate = useNavigate();
   const [companies, setCompanies] = useState([]);
 
 
@@ -44,7 +70,7 @@ export default function AttendanceManagement() {
     const token = localStorage.getItem("codeflame_payroll2003");
     if (!token) {
       toast.error("Session expired");
-      navigate("/");
+      navitgate("/");
       throw new Error("No token");
     }
     return token;
@@ -78,10 +104,10 @@ export default function AttendanceManagement() {
       }))
 
     } catch (error: any) {
-       if(error.response?.status === 401 || error.response?.status === 403){
-        navigate("/")
+      if (error.response?.status === 401 || error.response?.status === 403) {
+        navitgate("/")
       }
-      alert(error.message)
+      toast.error(error.message)
       console.log(error)
     }
   }
@@ -116,10 +142,10 @@ export default function AttendanceManagement() {
       setEmployees(updatedEmployee)
 
     } catch (error: any) {
-       if(error.response?.status === 401 || error.response?.status === 403){
-        navigate("/")
+      if (error.response?.status === 401 || error.response?.status === 403) {
+        navitgate("/")
       }
-      alert(error.message)
+      toast.error(error.message)
       console.log(error)
     }
   }
@@ -137,6 +163,7 @@ export default function AttendanceManagement() {
   };
 
   const updateEmployee = (id, field, value) => {
+   
     const updated = employees.map((emp) => {
       console.log(emp.id, id)
       if (emp.id !== id) return emp;
@@ -150,33 +177,37 @@ export default function AttendanceManagement() {
   const submitJson = () => {
     try {
       const parsed = JSON.parse(jsonData);
-      const updatedEmployees = employees.map((employee) => {
-        const record = parsed.find((item) => item.id === employee.id);
-        if (!record) return employee;
+      const updatedEmployees = employees.map((employee: any) => {
         return {
-          ...employee,
-          checkIn: record.checkIn || "",
-          checkOut: record.checkOut || "",
-          status: record.status || "Present",
-          workingHours: calculateHours(record.checkIn, record.checkOut),
-        };
+          companyId: employee.companyId,
+          companyName: employee.companyName,
+          id: employee.id,
+          empErpId: employee.empErpId,
+          name: employee.name,
+          checkIn: parsed.find((emp: any) => emp.id === employee.id).checkIn,
+          checkOut: parsed.find((emp: any) => emp.id === employee.id).checkOut,
+          status: parsed.find((emp: any) => emp.id === employee.id).status,
+          workingHours: parsed.find((emp: any) => emp.id === employee.id).workingHours,
+        }
       });
+      console.log(updatedEmployees)
       setEmployees(updatedEmployees);
-      alert("Attendance Filled Successfully");
+      toast.success("Attendance Filled Successfully");
     } catch (error) {
       alert("Invalid JSON Format");
     }
   };
 
   const saveAttendance = async () => {
-   
-    const udpatedEmployee = employees.map((emp) => {
+
+    const udpatedEmployee = employees.map((emp:any) => {
       emp.status = emp.status.length === 0 ? "Present" : emp.status;
       emp.checkIn = emp.checkIn.length === 0 ? "00:00" : emp.checkIn
       emp.checkOut = emp.checkOut.length === 0 ? "00:00" : emp.checkOut
       return emp;
     })
     const token = getToken();
+    setAttendanceProcessing(true)
     try {
       const res = await axios.post(`https://payroll-backend-pearl.vercel.app/codeflame/payroll/api/attendance?date=${selectedDate}`,
         { attendanceInfo: udpatedEmployee },
@@ -189,19 +220,15 @@ export default function AttendanceManagement() {
       )
       console.log(res.data)
       alert("Attendance Saved Successfully");
-    } catch (error) {
-       if(error.response?.status === 401 || error.response?.status === 403){
-        navigate("/")
+    } catch (error: any) {
+      if (error.response?.status === 401 || error.response?.status === 403) {
+        navitgate("/")
       }
-      alert("Failed To Save Attendance");
+      toast.error("Failed To Save Attendance");
+    } finally {
+      setAttendanceProcessing(false)
     }
   };
-
-
- const handleLogout = ()=>{
-    localStorage.removeItem("codeflame_payroll2003");
-    window.location.reload();
- }
 
 
 
@@ -212,13 +239,6 @@ export default function AttendanceManagement() {
 
   return (
     <div className="p-6 space-y-6 max-w-7xl mx-auto">
-      <div className="flex justify-end">
-        <button onClick={handleLogout} className="text-xl flex border border-black px-2 py-1 cursor-pointer rounded-xs  items-center gap-2">
-          <span>Logout</span>
-          
-          <FaLongArrowAltRight /> 
-          </button>
-      </div>
       {/* UI Header Options Row */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-slate-50 p-4 rounded-xl border">
         <div>
@@ -262,28 +282,60 @@ export default function AttendanceManagement() {
           />
 
 
-          <button onClick={saveAttendance} className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-4 py-2 rounded-lg shadow-sm transition">
-            Save Attendance
+          <button disabled={attendancProecessing} onClick={saveAttendance} className={` ${attendancProecessing ? "bg-blue-400 cursor-not-allowed" : "bg-blue-600 cursor-pointer"} flex items-center gap-2 hover:bg-blue-700 text-white text-sm font-semibold px-4 py-2 rounded-lg shadow-sm transition`}>
+            {attendancProecessing && <LoaderCircle />} <span>{attendancProecessing ? " Saving Attendance" : "Save Attendance"}</span>
+
           </button>
 
 
         </div>
       </div>
 
-      {/* JSON Array Parser Interface card */}
       <div className="bg-white border rounded-xl shadow-sm overflow-hidden">
-        <div className="border-b p-4 bg-slate-50">
-          <h3 className="font-bold text-slate-800">Paste Attendance JSON</h3>
+        {/* Header */}
+        <div className="border-b p-4 bg-slate-50 flex items-center justify-between">
+          <div>
+            <h3 className="font-bold text-slate-800">
+              Paste Attendance JSON
+            </h3>
+            <p className="text-xs text-slate-500 mt-1">
+              Upload your attendance sheet to ChatGPT/Gemini using our AI prompt,
+              then paste the generated JSON below.
+            </p>
+          </div>
+
+          <button
+            onClick={copyPrompt}
+            className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold px-4 py-2 rounded-lg transition"
+          >
+            <Copy size={16} />
+            Copy AI Prompt
+          </button>
         </div>
+
+        {/* JSON Input */}
         <div className="p-4">
           <textarea
             className="w-full min-h-[140px] border rounded-lg p-4 font-mono text-xs bg-slate-900 text-emerald-400 shadow-inner focus:outline-none"
             value={jsonData}
             onChange={(e) => setJsonData(e.target.value)}
-            placeholder={`[\n  { "id":"EMP001", "checkIn":"09:30", "checkOut":"17:30", "status":"Present" }\n]`}
+            placeholder={`[
+  {
+    "id":"EMP001",
+    "name":"Rohan"
+    "checkIn":"09:30",
+    "checkOut":"17:30",
+    "workingHours":8,
+    "status":"Present"
+  }
+]`}
           />
-          <button className="mt-3 bg-slate-800 hover:bg-slate-900 text-white text-xs font-bold px-4 py-2 rounded-lg transition" onClick={submitJson}>
-            Submit JSON Array
+
+          <button
+            className="mt-3 bg-slate-800 hover:bg-slate-900 text-white text-xs font-bold px-4 py-2 rounded-lg transition"
+            onClick={submitJson}
+          >
+            Submit JSON
           </button>
         </div>
       </div>
@@ -313,7 +365,7 @@ export default function AttendanceManagement() {
                   </td>
                 </tr>
               ) : (
-                filteredEmployees.map((employee) => (
+                filteredEmployees.map((employee:any) => (
                   <tr key={employee.id} className="border-b hover:bg-slate-50/80 transition">
                     <td className="px-6 py-4 font-bold text-slate-900">{employee.id}</td>
                     <td className="px-6 py-4 font-medium text-slate-700">{employee.name}</td>

@@ -16,9 +16,7 @@ export default function CompanyModal({
       mobile: "",
       website: "",
       address: "",
-      earning: [
-
-      ],
+      earning: [],
       deduction: [],
       leavePolicies: [],
     }

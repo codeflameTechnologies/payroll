@@ -14,13 +14,23 @@ function Report({ emp }) {
   const totalAttendanceArr = [];
 
   for (const key in emp.attendance) {
-    if (key !== "attendanceRecords" && key !== "totalDaysInMonth") {
+    if (key !== "attendanceRecords" && key !== "totalDaysInMonth" && key !=="Present") {
       totalAttendanceArr.push({
         name: key,
         value: emp.attendance[key]
       });
     }
   }
+
+ // Employee worked hours
+  const employeeWorkingHour = emp.attendance.attendanceRecords.reduce(
+    (sum, wh) => sum + Number(wh.workingHours),
+    0
+  );
+  
+  const presentDays = Number(employeeWorkingHour) / Number(emp.workingHour) || 0;
+
+
 
   return (
     <tr className="border-b border-black align-top hover:bg-gray-50">
@@ -73,6 +83,10 @@ function Report({ emp }) {
       <td className='text-[10px] border-r border-black p-1 min-w-[80px] bg-gray-50'>
         <table className="w-full text-left border-collapse">
           <tbody>
+            <tr  className='border-b border-gray-200 last:border-none'>
+                <td className='font-medium text-gray-600 pr-1 py-0.5 text-nowrap'>Present:</td>
+                <td className='font-bold text-gray-900 text-right py-0.5'>{presentDays}</td>
+              </tr>
             {totalAttendanceArr.map((ta, idx) => (
               <tr key={idx} className='border-b border-gray-200 last:border-none'>
                 <td className='font-medium text-gray-600 pr-1 py-0.5 text-nowrap'>{ta.name}:</td>
@@ -177,6 +191,7 @@ export default function AttendanceReport() {
               dept: emp.department_name,
               fatherName: emp.fatherName,
               doj: emp.DOJ,
+              workingHour: emp.workingHour,
               attendance: {
                 totalDaysInMonth: res?.data?.meta?.totalDaysInMonth || 0,
                 attendanceRecords: [],

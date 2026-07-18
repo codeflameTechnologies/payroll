@@ -28,7 +28,7 @@ const monthObj = {
 
 
 function Payroll({ emp, index, cmp }) {
-
+  console.log("Company Data:", cmp)
 
   const paidLeave = cmp.leavePolicies.filter((lv) => {
 
@@ -57,13 +57,7 @@ function Payroll({ emp, index, cmp }) {
 
   })
 
-  paydayArr.push({
 
-    name: "Present",
-
-    value: emp.attendance["Present"] || 0
-
-  })
 
 
   unpaidLeave.map((ul) => {
@@ -78,7 +72,7 @@ function Payroll({ emp, index, cmp }) {
 
   })
   const halfdays = emp.attendance["Half Day"] || 0;
-  const paydays = paydayArr.reduce((sum, d) => sum + Number(d.value), 0) - halfdays * 0.5;
+
 
 
 
@@ -144,13 +138,6 @@ function Payroll({ emp, index, cmp }) {
 
   const totalWorkingHours = payableDays * emp.workingHour;
 
-  // Basic
-  const oneHourBasicPayment =
-    emp.rates["Basic Salary"] / totalWorkingHours;
-
-  // HRA
-  const oneHourHRAPayment =
-    emp.rates.HRA / totalWorkingHours;
 
   // Employee worked hours
   const employeeWorkingHour = emp.attendance.workingRecord.reduce(
@@ -158,17 +145,33 @@ function Payroll({ emp, index, cmp }) {
     0
   );
 
+  const presentDays = employeeWorkingHour / emp.workingHour;
+  paydayArr.push({
+
+    name: "Present",
+
+    value: presentDays.toFixed(2) || 0
+
+  })
+   const paydays = paydayArr.reduce((sum, d) => sum + Number(d.value), 0) - halfdays * 0.5;
 
 
 
   const earnedRates = {};
-
+  console.log(emp.name)
   for (const component in emp.rates) {
+    const isProrata = cmp.earnings?.find((e) => e.name === component)?.prorata;
     const monthlyAmount = Number(emp.rates[component]) || 0;
+    console.log(isProrata)
+    if (isProrata) {
 
-    const hourlyRate = monthlyAmount / totalWorkingHours;
 
-    earnedRates[component] = hourlyRate * employeeWorkingHour;
+      const hourlyRate = monthlyAmount / totalWorkingHours;
+
+      earnedRates[component] = hourlyRate * employeeWorkingHour;
+    } else {
+      earnedRates[component] = monthlyAmount
+    }
   }
 
 
@@ -179,7 +182,7 @@ function Payroll({ emp, index, cmp }) {
 
   const totalDeductions = Object.values(emp.deductions).reduce((sum, value) => sum + (Number(value) || 0), 0);
 
-  const netSalary = revisedTotalEarnings - totalDeductions;
+  const netSalary = (revisedTotalEarnings - totalDeductions).toFixed(2);
 
 
 
