@@ -4,6 +4,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router';
 
 import { useReactToPrint } from 'react-to-print';
+import { object } from 'zod';
 
 import { pl, tr } from 'zod/v4/locales';
 
@@ -95,19 +96,7 @@ function Payroll({ emp, index, cmp }) {
 
   }
 
-  const deductionArr = [];
 
-  for (const key in emp.deductions) {
-
-    deductionArr.push({
-
-      ctn: key,
-
-      value: emp.deductions[key]
-
-    })
-
-  }
 
   let totalHoliday = 0;
 
@@ -153,12 +142,12 @@ function Payroll({ emp, index, cmp }) {
     value: presentDays.toFixed(2) || 0
 
   })
-   const paydays = paydayArr.reduce((sum, d) => sum + Number(d.value), 0) - halfdays * 0.5;
+  const paydays = paydayArr.reduce((sum, d) => sum + Number(d.value), 0) - halfdays * 0.5;
 
 
 
   const earnedRates = {};
-  console.log(emp.name)
+
   for (const component in emp.rates) {
     const isProrata = cmp.earnings?.find((e) => e.name === component)?.prorata;
     const monthlyAmount = Number(emp.rates[component]) || 0;
@@ -168,7 +157,7 @@ function Payroll({ emp, index, cmp }) {
 
       const hourlyRate = monthlyAmount / totalWorkingHours;
 
-      earnedRates[component] = hourlyRate * employeeWorkingHour;
+      earnedRates[component] = Math.round((hourlyRate * employeeWorkingHour));
     } else {
       earnedRates[component] = monthlyAmount
     }
@@ -179,6 +168,40 @@ function Payroll({ emp, index, cmp }) {
     (sum, value) => sum + value,
     0
   );
+
+
+  const EPF = Object.entries(earnedRates).reduce((sum, [key, value]) => {
+    return sum + (key !== "HRA" && key !== "BONUS" ? Number(value) : 0);
+  }, 0) * 0.12;
+  const ESI = revisedTotalEarnings <= 21000 ? revisedTotalEarnings * 0.0075 : 0;
+
+  const deductionArr = [];
+
+  for (const key in emp.deductions) {
+
+    if (key === "E.P.F") {
+      deductionArr.push({
+        ctn: key,
+        value: Math.round(EPF)
+      })
+    } else if (key === "E.S.I") {
+      deductionArr.push({
+        ctn: key,
+        value: Math.round(ESI)
+      })
+    } else {
+      deductionArr.push({
+
+        ctn: key,
+        value: emp.deductions[key]
+
+      })
+    }
+
+
+  }
+
+
 
   const totalDeductions = Object.values(emp.deductions).reduce((sum, value) => sum + (Number(value) || 0), 0);
 

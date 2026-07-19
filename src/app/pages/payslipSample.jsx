@@ -22,16 +22,16 @@ const monthObj = {
 
 
 // --- SINGLE PAYSLIP TEMPLATE ---
-const PayslipItem = ({ emp, selectedCompanyDetail,reportDate }) => {
+const PayslipItem = ({ emp, selectedCompanyDetail, reportDate }) => {
   const [year, month] = reportDate.split("-")
   const monthYear = `${monthObj[Number(month)]} ${year}`
 
 
   const attendanceArr = []
-  for(const key in emp.attendance){
-      if(key !== "Present" && key != "workingRecord" && key !== "totalDaysInMonth"){
-        attendanceArr.push({status:key,value:emp.attendance[key]})
-      }
+  for (const key in emp.attendance) {
+    if (key !== "Present" && key != "workingRecord" && key !== "totalDaysInMonth") {
+      attendanceArr.push({ status: key, value: emp.attendance[key] })
+    }
   }
 
   const paidLeave = selectedCompanyDetail.leavePolicies.filter((lv) => {
@@ -85,10 +85,11 @@ const PayslipItem = ({ emp, selectedCompanyDetail,reportDate }) => {
 
 
 
+  let totalRateArr = 0
   const rateArr = [];
 
   for (const key in emp.rates) {
-
+    totalRateArr += Number(emp.rates[key])
     rateArr.push({
 
       ctn: key,
@@ -99,19 +100,8 @@ const PayslipItem = ({ emp, selectedCompanyDetail,reportDate }) => {
 
   }
 
-  const deductionArr = [];
 
-  for (const key in emp.deductions) {
 
-    deductionArr.push({
-
-      ctn: key,
-
-      value: emp.deductions[key]
-
-    })
-
-  }
 
   let totalHoliday = 0;
 
@@ -160,13 +150,13 @@ const PayslipItem = ({ emp, selectedCompanyDetail,reportDate }) => {
     value: presentDays.toFixed(2) || 0
 
   })
-   const paydays = paydayArr.reduce((sum, d) => sum + Number(d.value), 0) + presentDays;
-  
+  const paydays = paydayArr.reduce((sum, d) => sum + Number(d.value), 0) + presentDays;
+
 
 
 
   const earnedRates = {};
-  
+
   for (const component in emp.rates) {
     const isProrata = selectedCompanyDetail.earnings?.find((e) => e.name === component)?.prorata;
     const monthlyAmount = Number(emp.rates[component]) || 0;
@@ -176,7 +166,7 @@ const PayslipItem = ({ emp, selectedCompanyDetail,reportDate }) => {
 
       const hourlyRate = monthlyAmount / totalWorkingHours;
 
-      earnedRates[component] = hourlyRate * employeeWorkingHour;
+      earnedRates[component] = Math.round((hourlyRate * employeeWorkingHour));
     } else {
       earnedRates[component] = monthlyAmount
     }
@@ -187,6 +177,39 @@ const PayslipItem = ({ emp, selectedCompanyDetail,reportDate }) => {
     (sum, value) => sum + value,
     0
   );
+
+
+  const EPF = Object.entries(earnedRates).reduce((sum, [key, value]) => {
+    return sum + (key !== "HRA" && key !== "BONUS" ? Number(value) : 0);
+  }, 0) * 0.12;
+  const ESI = revisedTotalEarnings <= 21000 ? revisedTotalEarnings * 0.0075 : 0;
+
+  const deductionArr = [];
+
+  for (const key in emp.deductions) {
+
+    if (key === "E.P.F") {
+      deductionArr.push({
+        ctn: key,
+        value: Math.round(EPF)
+      })
+    } else if (key === "E.S.I") {
+      deductionArr.push({
+        ctn: key,
+        value: Math.round(ESI)
+      })
+    } else {
+      deductionArr.push({
+
+        ctn: key,
+        value: emp.deductions[key]
+
+      })
+    }
+
+
+  }
+
 
   const totalDeductions = Object.values(emp.deductions).reduce((sum, value) => sum + (Number(value) || 0), 0);
 
@@ -316,7 +339,7 @@ const PayslipItem = ({ emp, selectedCompanyDetail,reportDate }) => {
 
               <tr style={{ backgroundColor: '#f0f0f0', borderTop: '1px solid #000', fontWeight: 'bold' }}>
                 <td style={{ padding: '3px' }}>TOTAL / कुल योग :</td>
-                <td style={{ textAlign: 'right' }}>14186.00</td>
+                <td style={{ textAlign: 'right' }}>{totalRateArr}</td>
                 <td style={{ textAlign: 'right' }}>0</td>
                 <td style={{ textAlign: 'right' }} className='pl-2'>{revisedTotalEarnings.toFixed(2)}</td>
               </tr>

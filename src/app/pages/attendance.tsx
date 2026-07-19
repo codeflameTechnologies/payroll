@@ -123,21 +123,26 @@ export default function AttendanceManagement() {
         },
       });
       const res = await response.json()
-      console.log("attendance record of selected date:", res)
-      const updatedEmployee = res.data.map((emp: any) => {
-
-        return {
-          companyId: emp.compId._id,
-          companyName: emp.compId.name,
-          id: emp.empId.empId || emp.empId,
-          empErpId: emp.empId._id,
-          name: emp.name,
-          checkIn: emp.checkInTime !== "00:00" && emp.checkInTime !== null ? emp.checkInTime : "",
-          checkOut: emp.checkOutTime !== "00:00" && emp.checkInTime !== null ? emp.checkOutTime : "",
-          status: emp.status,
-          workingHours: emp.workingHours,
+    
+      const getTimeValue = (time: string | null | undefined) => {
+        if (!time || time === "00:00" || time === "00:00:00") {
+          return "";
         }
-      })
+
+        return time;
+      };
+
+      const updatedEmployee = res.data.map((emp: any) => ({
+        companyId: emp.compId._id,
+        companyName: emp.compId.name,
+        id: emp.empId.empId || emp.empId,
+        empErpId: emp.empId._id,
+        name: emp.name,
+        checkIn: getTimeValue(emp.checkInTime),
+        checkOut: getTimeValue(emp.checkOutTime),
+        status: emp.status,
+        workingHours: emp.workingHours,
+      }));
       console.log(updatedEmployee)
       setEmployees(updatedEmployee)
 
@@ -163,7 +168,7 @@ export default function AttendanceManagement() {
   };
 
   const updateEmployee = (id, field, value) => {
-   
+
     const updated = employees.map((emp) => {
       console.log(emp.id, id)
       if (emp.id !== id) return emp;
@@ -200,7 +205,7 @@ export default function AttendanceManagement() {
 
   const saveAttendance = async () => {
 
-    const udpatedEmployee = employees.map((emp:any) => {
+    const udpatedEmployee = employees.map((emp: any) => {
       emp.status = emp.status.length === 0 ? "Present" : emp.status;
       emp.checkIn = emp.checkIn.length === 0 ? "00:00" : emp.checkIn
       emp.checkOut = emp.checkOut.length === 0 ? "00:00" : emp.checkOut
@@ -219,7 +224,8 @@ export default function AttendanceManagement() {
 
       )
       console.log(res.data)
-      alert("Attendance Saved Successfully");
+      getAttendanceRecordByDate()
+      toast.success("Attendance Saved Successfully");
     } catch (error: any) {
       if (error.response?.status === 401 || error.response?.status === 403) {
         navitgate("/")
@@ -365,7 +371,7 @@ export default function AttendanceManagement() {
                   </td>
                 </tr>
               ) : (
-                filteredEmployees.map((employee:any) => (
+                filteredEmployees.map((employee: any) => (
                   <tr key={employee.id} className="border-b hover:bg-slate-50/80 transition">
                     <td className="px-6 py-4 font-bold text-slate-900">{employee.id}</td>
                     <td className="px-6 py-4 font-medium text-slate-700">{employee.name}</td>
